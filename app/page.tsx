@@ -17,7 +17,7 @@ export default function Landing() {
             <Link href="/dashboard" className="btn">
               Dashboard
             </Link>
-            {!isPro && <UpgradeButton className="btn btn-primary" label="Start free trial" />}
+            {!isPro && <UpgradeButton className="btn btn-primary" label="Get Pro" />}
           </div>
         </nav>
 
@@ -37,7 +37,7 @@ export default function Landing() {
                 Open your dashboard
               </Link>
             ) : (
-              <UpgradeButton className="btn btn-primary btn-lg" label="Start 7-day free trial" />
+              <UpgradeButton className="btn btn-primary btn-lg" label="Get Pro — $29/mo" />
             )}
             <Link href="/dashboard" className="btn btn-lg">
               See free signals first
@@ -109,7 +109,7 @@ export default function Landing() {
             <div className="plan featured">
               <h3>Pro</h3>
               <div className="price">
-                $29 <small>/ month · 7-day free trial</small>
+                $29 <small>/ month · cancel anytime</small>
               </div>
               <ul>
                 <li>All 10 pairs: majors + EUR/GBP, EUR/JPY, GBP/JPY</li>
@@ -123,7 +123,7 @@ export default function Landing() {
                   You&apos;re Pro — open dashboard
                 </Link>
               ) : (
-                <UpgradeButton className="btn btn-primary" label="Start free trial" />
+                <UpgradeButton className="btn btn-primary" label="Get Pro" />
               )}
             </div>
           </div>

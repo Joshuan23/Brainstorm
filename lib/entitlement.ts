@@ -2,9 +2,10 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
 /**
- * Lightweight paywall entitlement: after a verified Stripe Checkout, we set a
- * signed, expiring cookie. No user database needed for the MVP. For a full
- * launch, replace with real accounts + Stripe webhooks (see README roadmap).
+ * Lightweight paywall entitlement: after a Lemon Squeezy license key is
+ * activated (or a demo pass is granted), we set a signed, expiring cookie.
+ * No user database needed. Pro cookies carry the license key and are
+ * re-validated roughly daily by /api/signals, so cancellations revoke access.
  */
 
 export const PRO_COOKIE = "ps_pro";
@@ -16,6 +17,10 @@ function secret(): string {
 export interface Entitlement {
   plan: "pro" | "demo-pro";
   exp: number; // unix seconds
+  /** Lemon Squeezy license key backing a "pro" plan (absent for demo passes) */
+  key?: string;
+  /** unix seconds of the last successful license re-validation */
+  checkedAt?: number;
 }
 
 export function signEntitlement(ent: Entitlement): string {

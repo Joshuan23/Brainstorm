@@ -1,8 +1,8 @@
 # PipSignal
 
 Daily forex signals from a **transparent multi-indicator confluence engine**, with a
-Stripe-powered paywall. Built with Next.js 14 (App Router, TypeScript), no database
-required for the MVP.
+license-key paywall powered by Lemon Squeezy. Built with Next.js 14 (App Router,
+TypeScript), no database required.
 
 > **Honesty note (read before marketing this):** no product can truthfully claim "the
 > most accurate signals in the market", and making that claim invites regulatory and
@@ -19,7 +19,7 @@ required for the MVP.
 | Indicators | `lib/indicators.ts` | SMA, EMA, RSI, MACD, Bollinger, close-based ATR proxy — pure functions, unit-checked. |
 | Backtester | `lib/backtest.ts` | Walk-forward simulation of the exact live rules (no lookahead; both-sides-hit days count as losses). Produces the win rate / profit factor / net-R shown on each card. |
 | Market data | `lib/data.ts` | Frankfurter API (ECB daily reference rates, free, no key) with a 15-min cache; falls back to clearly-labelled deterministic demo data when offline. |
-| Paywall | `app/api/checkout*`, `lib/entitlement.ts` | Stripe Checkout (subscription, 7-day trial). Success URL is verified server-side with Stripe before an HMAC-signed, expiring Pro cookie is set. No Stripe keys → demo mode (24 h "Pro (demo)" pass) so the flow is testable locally. |
+| Paywall | `app/api/checkout`, `app/api/license/activate`, `lib/lemonsqueezy.ts`, `lib/entitlement.ts` | Lemon Squeezy hosted checkout (merchant of record — they handle global sales tax/VAT). Purchases email the buyer a license key; activating it in the app validates it against the License API and sets an HMAC-signed Pro cookie. The key is re-validated ~daily, so cancelled subscriptions lose access automatically. No config → demo mode (24 h "Pro (demo)" pass). |
 | Free tier | `lib/pairs.ts` | EUR/USD + USD/JPY free; 8 more pairs (majors + EUR/GBP, EUR/JPY, GBP/JPY) behind Pro at $29/mo. |
 | UI | `app/`, `components/` | Landing page with pricing + risk disclosure; dashboard with signal cards, confluence meter, vote breakdown, interactive sparklines, blurred locked cards. |
 
@@ -32,15 +32,20 @@ npm run engine:check   # indicator unit checks + full pipeline over all 10 pairs
 npm run build          # production build
 ```
 
-Copy `.env.example` to `.env.local` and fill in Stripe keys to take real payments:
+Copy `.env.example` to `.env.local` and configure Lemon Squeezy to take real payments:
 
-1. Stripe dashboard → create a Product ("PipSignal Pro") with a **recurring $29/mo price** → copy the `price_...` id.
-2. Set `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, and a long random `ENTITLEMENT_SECRET`.
-3. Deploy (Vercel works out of the box). Checkout → success → server-side session
-   verification → signed 30-day Pro cookie.
+1. Create a Lemon Squeezy store (they are the merchant of record, so they handle
+   global sales tax/VAT — no Stripe account needed) and a **$29/mo subscription
+   product** with *"Generate license keys"* enabled.
+2. Set `LEMONSQUEEZY_CHECKOUT_URL` (the product's checkout link), optionally
+   `LEMONSQUEEZY_STORE_ID`/`LEMONSQUEEZY_PRODUCT_ID` to pin keys to your product,
+   and a long random `ENTITLEMENT_SECRET`.
+3. Deploy (Vercel works out of the box). Purchase → license key arrives by email →
+   buyer activates it on the dashboard → signed 30-day Pro cookie, silently
+   re-validated ~daily so cancelled subscriptions lose access on their own.
 
-Without keys the upgrade button grants a clearly-labelled 24-hour demo pass, so the
-entire paywall flow can be exercised in development.
+Without configuration the upgrade button grants a clearly-labelled 24-hour demo
+pass, so the entire paywall flow can be exercised in development.
 
 ## Data honesty
 
@@ -53,9 +58,9 @@ entire paywall flow can be exercised in development.
 
 ## Before charging real customers (roadmap)
 
-- [ ] Real accounts (email magic-link) + Stripe **webhooks** so cancellations revoke
-      access immediately (the MVP cookie simply expires after 30 days).
-- [ ] Billing portal link (`stripe.billingPortal.sessions.create`) for self-serve cancel.
+- [ ] Real accounts (email magic-link) so buyers don't depend on one browser's
+      cookie; Lemon Squeezy webhooks for instant (rather than ~daily) revocation.
+- [ ] Link to the Lemon Squeezy customer portal for self-serve cancel/receipts.
 - [ ] Upgrade the data feed (e.g. a keyed OHLC provider) for true ATR stops and
       intraday timeframes.
 - [ ] Email/push delivery of new signals (retention).

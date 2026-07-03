@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SignalCard } from "./SignalCard";
 import { UpgradeButton } from "./UpgradeButton";
+import { LicenseForm } from "./LicenseForm";
 import type { BacktestStats } from "@/lib/backtest";
 import type { Signal } from "@/lib/signals";
 
@@ -59,9 +60,15 @@ export function Dashboard() {
             Switch to free view
           </button>
         ) : (
-          <UpgradeButton label={`Unlock ${lockedCount} more pairs — start free trial`} />
+          <UpgradeButton label={`Unlock ${lockedCount} more pairs with Pro`} />
         )}
       </div>
+
+      {!isPro && (
+        <div style={{ marginBottom: 20 }}>
+          <LicenseForm />
+        </div>
+      )}
 
       {anyDemo && (
         <div className="banner">
