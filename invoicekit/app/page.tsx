@@ -72,6 +72,13 @@ export default function HomePage() {
             </p>
           </div>
           <div className="card">
+            <h3><Link href="/receipt-generator">Receipt generator</Link></h3>
+            <p>
+              Confirm a payment with a professional receipt and PAID stamp — cash,
+              card, or rent. Free, straight to PDF, nothing uploaded.
+            </p>
+          </div>
+          <div className="card">
             <h3><Link href="/invoice-generator">Blank invoice generator</Link></h3>
             <p>
               Start from a clean slate: any currency, tax rates, discounts, and

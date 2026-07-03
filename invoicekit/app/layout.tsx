@@ -24,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Link>
             <nav className="site-nav">
               <Link href="/invoice-generator">Invoice Generator</Link>
+              <Link href="/receipt-generator">Receipt Generator</Link>
               <Link href="/freelance-rate-calculator">Rate Calculator</Link>
               <Link href="/#templates">Templates</Link>
             </nav>
