@@ -16,6 +16,7 @@ export interface InvoicePreset {
 }
 
 interface InvoiceState {
+  logo: string; // data URL, stored locally only
   from: string;
   fromDetails: string;
   to: string;
@@ -40,6 +41,7 @@ function today(offsetDays = 0): string {
 
 function blankState(): InvoiceState {
   return {
+    logo: "",
     from: "",
     fromDetails: "",
     to: "",
@@ -98,6 +100,29 @@ export default function InvoiceGenerator({ preset }: { preset?: InvoicePreset })
 
   const set = (patch: Partial<InvoiceState>) => setInv((s) => ({ ...s, ...patch }));
 
+  // Read a logo file and downscale it in-browser so the data URL stays small
+  // enough for localStorage. Never uploaded anywhere.
+  const onLogo = (file: File | undefined) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 300;
+        const scale = Math.min(1, maxW / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        set({ logo: canvas.toDataURL("image/png") });
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const setItem = (idx: number, patch: Partial<LineItem>) =>
     setInv((s) => ({
       ...s,
@@ -128,6 +153,20 @@ export default function InvoiceGenerator({ preset }: { preset?: InvoicePreset })
     <div className="gen-layout">
       <form className="gen-form" onSubmit={(e) => e.preventDefault()}>
         <h2>Your business</h2>
+        <div className="field">
+          <label htmlFor="logo">Logo (optional — stays on your device)</label>
+          {inv.logo ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={inv.logo} alt="Your logo" style={{ height: 40, borderRadius: 4 }} />
+              <button type="button" className="item-remove" aria-label="Remove logo"
+                onClick={() => set({ logo: "" })}>Remove</button>
+            </div>
+          ) : (
+            <input id="logo" type="file" accept="image/*"
+              onChange={(e) => onLogo(e.target.files?.[0])} />
+          )}
+        </div>
         <div className="field">
           <label htmlFor="from">Business / your name</label>
           <input id="from" value={inv.from} placeholder="Jane Doe Photography"
@@ -229,6 +268,10 @@ export default function InvoiceGenerator({ preset }: { preset?: InvoicePreset })
       <div className="invoice-paper" id="invoice-preview">
         <div className="inv-top">
           <div>
+            {inv.logo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={inv.logo} alt="" style={{ maxHeight: 56, marginBottom: 10, display: "block" }} />
+            )}
             <div className="inv-title">INVOICE</div>
           </div>
           <div className="inv-meta">
