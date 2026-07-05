@@ -26,7 +26,7 @@ export function render(ctx: CanvasRenderingContext2D, g: GameState, input: Input
 
   switch (g.scene) {
     case "menu":
-      drawMenu(ctx);
+      drawMenu(ctx, g);
       break;
     case "select":
       drawSelect(ctx, g);
@@ -34,18 +34,52 @@ export function render(ctx: CanvasRenderingContext2D, g: GameState, input: Input
     case "bracket":
       drawBracket(ctx, g);
       break;
-    default:
+    default: {
+      // court + players shake on big plays; HUD/controls stay steady
+      ctx.save();
+      if (g.shake > 0.2) {
+        ctx.translate((Math.random() - 0.5) * g.shake, (Math.random() - 0.5) * g.shake);
+      }
       drawCourt(ctx);
+      drawTrail(ctx, g);
       drawEntities(ctx, g);
       drawParticles(ctx, g);
+      ctx.restore();
+
       drawHud(ctx, g);
       drawControls(ctx, g, input);
       drawToasts(ctx, g);
+
+      // full-screen colored flash on scores/dunks/blocks
+      if (g.flash > 0.01) {
+        ctx.save();
+        ctx.globalAlpha = g.flash * 0.5;
+        ctx.fillStyle = g.flashColor;
+        ctx.fillRect(0, 0, VW, VH);
+        ctx.restore();
+      }
+
       if (g.scene === "tip" || g.scene === "quarterbreak") drawTip(ctx, g);
-      if (g.scene === "paused") drawPause(ctx);
+      if (g.scene === "paused") drawPause(ctx, g);
       if (g.scene === "final") drawFinal(ctx, g);
       break;
+    }
   }
+}
+
+// fading ball trail during shots / passes
+function drawTrail(ctx: CanvasRenderingContext2D, g: GameState) {
+  const t = g.ballTrail;
+  for (let i = 0; i < t.length; i++) {
+    const p = t[i];
+    const a = (i / t.length) * 0.4;
+    ctx.globalAlpha = a;
+    ctx.fillStyle = "#ffb35c";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y - p.z, 8 * (i / t.length), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 }
 
 // ---- court -----------------------------------------------------------------
@@ -478,16 +512,24 @@ function drawTip(ctx: CanvasRenderingContext2D, g: GameState) {
   ctx.fillText(msg, VW / 2, VH / 2);
 }
 
-function drawPause(ctx: CanvasRenderingContext2D) {
-  ctx.fillStyle = "rgba(0,0,0,0.6)";
+function drawPause(ctx: CanvasRenderingContext2D, g: GameState) {
+  ctx.fillStyle = "rgba(0,0,0,0.7)";
   ctx.fillRect(0, 0, VW, VH);
   ctx.fillStyle = "#fff";
   ctx.font = "bold 54px Trebuchet MS, sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("PAUSED", VW / 2, VH / 2 - 20);
-  ctx.font = "20px Trebuchet MS, sans-serif";
-  ctx.fillText("Tap / press P to resume", VW / 2, VH / 2 + 34);
+  ctx.fillText("PAUSED", VW / 2, VH / 2 - 90);
+  ctx.font = "18px Trebuchet MS, sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,0.7)";
+  ctx.fillText("Tap anywhere to resume  ·  P/Esc", VW / 2, VH / 2 - 44);
+
+  g.menuButtons = [];
+  const mute = { id: "mute", x: VW / 2 - 150, y: VH / 2, w: 300, h: 56 };
+  drawButton(ctx, mute, g.audioOn ? "🔊  SOUND: ON" : "🔇  SOUND: OFF", g.audioOn ? "#22c55e" : "#475569");
+  const quit = { id: "quit", x: VW / 2 - 150, y: VH / 2 + 70, w: 300, h: 56 };
+  drawButton(ctx, quit, "QUIT TO MENU", "#7c2d3a");
+  g.menuButtons.push(mute, quit);
 }
 
 function drawFinal(ctx: CanvasRenderingContext2D, g: GameState) {
@@ -590,7 +632,8 @@ function drawBracket(ctx: CanvasRenderingContext2D, g: GameState) {
 
 // ---- menu / select ---------------------------------------------------------
 
-function drawMenu(ctx: CanvasRenderingContext2D) {
+function drawMenu(ctx: CanvasRenderingContext2D, g: GameState) {
+  g.menuButtons = [];
   // court glow backdrop
   ctx.fillStyle = "rgba(255,211,77,0.06)";
   for (let i = 0; i < 6; i++) {
@@ -615,94 +658,139 @@ function drawMenu(ctx: CanvasRenderingContext2D) {
   ctx.fillStyle = "rgba(255,255,255,0.4)";
   ctx.font = "15px Trebuchet MS, sans-serif";
   ctx.fillText("Move: drag left / WASD   ·   Shoot: J   ·   Pass: K   ·   Turbo: Shift", VW / 2, VH - 40);
+
+  // mute toggle (top-right)
+  const mute = { id: "mute", x: VW - 180, y: 24, w: 156, h: 44 };
+  drawButton(ctx, mute, g.audioOn ? "🔊 SOUND" : "🔇 MUTED", g.audioOn ? "#0e7490" : "#475569");
+  g.menuButtons.push(mute);
 }
 
 function drawSelect(ctx: CanvasRenderingContext2D, g: GameState) {
+  g.menuButtons = [];
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = "#fff";
-  ctx.font = "bold 40px Trebuchet MS, sans-serif";
-  ctx.fillText("SELECT TEAMS", VW / 2, 60);
+  ctx.font = "bold 34px Trebuchet MS, sans-serif";
+  ctx.fillText("SELECT TEAMS", VW / 2, 34);
 
-  g.menuButtons = [];
-  drawTeamPicker(ctx, g, "YOU", TEAMS[g.selHome], VW * 0.28, "home");
-  drawTeamPicker(ctx, g, "OPPONENT", TEAMS[g.selAway], VW * 0.72, "away");
+  // two compact preview panels
+  drawMiniPanel(ctx, "YOU", TEAMS[g.selHome], 70, 58, 520, 148, g.selectTarget === "home", "#f2c14e");
+  drawMiniPanel(ctx, "OPPONENT", TEAMS[g.selAway], VW - 70 - 520, 58, 520, 148, g.selectTarget === "away", "#ff5566");
 
-  // difficulty
+  // target toggle
+  const tgt = { id: "target", x: VW / 2 - 200, y: 218, w: 400, h: 40 };
+  drawButton(
+    ctx,
+    tgt,
+    g.selectTarget === "home" ? "TAP A TEAM TO SET  ▸  YOUR TEAM" : "TAP A TEAM TO SET  ▸  OPPONENT",
+    g.selectTarget === "home" ? "#b8860b" : "#8a2b38",
+  );
+  g.menuButtons.push(tgt);
+
+  // team grid (all teams)
+  const cols = 14;
+  const gLeft = 56, gTop = 278, tileW = 79, tileH = 74, gapX = 5.2, gapY = 10;
+  TEAMS.forEach((team, i) => {
+    const c = i % cols, r = (i / cols) | 0;
+    const x = gLeft + c * (tileW + gapX);
+    const y = gTop + r * (tileH + gapY);
+    const isHome = i === g.selHome, isAway = i === g.selAway;
+    ctx.fillStyle = team.primary;
+    roundRect(ctx, x, y, tileW, tileH, 8);
+    ctx.fill();
+    // bottom band for legibility
+    ctx.fillStyle = team.secondary;
+    roundRect(ctx, x, y + tileH - 22, tileW, 22, 8);
+    ctx.fill();
+    if (isHome || isAway) {
+      ctx.strokeStyle = isHome ? "#f2c14e" : "#ff5566";
+      ctx.lineWidth = 4;
+      roundRect(ctx, x + 1, y + 1, tileW - 2, tileH - 2, 8);
+      ctx.stroke();
+    }
+    if (team.roster.some((p) => p.legend)) {
+      ctx.fillStyle = "#f2c14e";
+      ctx.font = "11px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("★", x + 5, y + 13);
+    }
+    ctx.fillStyle = team.accent;
+    ctx.font = "bold 17px Trebuchet MS, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(team.abbr, x + tileW / 2, y + tileH / 2 - 6);
+    ctx.fillStyle = "#fff";
+    ctx.font = "9px Trebuchet MS, sans-serif";
+    ctx.fillText(team.city.slice(0, 10), x + tileW / 2, y + tileH - 11);
+    g.menuButtons.push({ id: `pick:${i}`, x, y, w: tileW, h: tileH });
+  });
+
+  // bottom controls
+  const y0 = 600;
   const diffLabel = g.difficulty < 0.4 ? "ROOKIE" : g.difficulty < 0.7 ? "PRO" : "ALL-STAR";
-  const db = { id: "diff", x: VW / 2 - 130, y: 470, w: 260, h: 50 };
-  drawButton(ctx, db, `DIFFICULTY: ${diffLabel}`, "#8b5cf6");
-  g.menuButtons.push(db);
-
-  // start modes
-  const exh = { id: "exhibition", x: VW / 2 - 312, y: 540, w: 296, h: 66 };
-  const tourn = { id: "tournament", x: VW / 2 + 16, y: 540, w: 296, h: 66 };
+  const db = { id: "diff", x: 56, y: y0, w: 236, h: 62 };
+  drawButton(ctx, db, `DIFF: ${diffLabel}`, "#8b5cf6");
+  const exh = { id: "exhibition", x: 308, y: y0, w: 300, h: 62 };
   drawButton(ctx, exh, "EXHIBITION", "#22c55e");
+  const tourn = { id: "tournament", x: 624, y: y0, w: 330, h: 62 };
   drawButton(ctx, tourn, "★ TOURNAMENT", "#f59e0b");
-  g.menuButtons.push(exh, tourn);
+  const mute = { id: "mute", x: 970, y: y0, w: 254, h: 62 };
+  drawButton(ctx, mute, g.audioOn ? "🔊 SOUND ON" : "🔇 SOUND OFF", g.audioOn ? "#0e7490" : "#475569");
+  g.menuButtons.push(db, exh, tourn, mute);
 
-  const bb = { id: "back", x: 30, y: 30, w: 90, h: 40 };
+  const bb = { id: "back", x: 20, y: 18, w: 84, h: 34 };
   drawButton(ctx, bb, "BACK", "#334");
   g.menuButtons.push(bb);
 }
 
-function drawTeamPicker(
+// Compact preview panel: color chip + team name + star line.
+function drawMiniPanel(
   ctx: CanvasRenderingContext2D,
-  g: GameState,
   label: string,
   team: (typeof TEAMS)[number],
-  cx: number,
-  which: "home" | "away",
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  active: boolean,
+  activeColor: string,
 ) {
-  ctx.fillStyle = "#ffd34d";
-  ctx.font = "bold 22px Trebuchet MS, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(label, cx, 116);
-
-  // portrait card
-  ctx.fillStyle = team.secondary;
-  roundRect(ctx, cx - 88, 140, 176, 172, 18);
+  ctx.fillStyle = "rgba(255,255,255,0.05)";
+  roundRect(ctx, x, y, w, h, 14);
   ctx.fill();
-  ctx.fillStyle = team.primary;
-  roundRect(ctx, cx - 88, 140, 176, 118, 18);
-  ctx.fill();
-
-  // star player portrait (roster[0])
-  drawPortrait(ctx, team, cx, 224);
-
-  // abbr chip
-  ctx.fillStyle = team.accent;
-  ctx.font = "bold 20px Trebuchet MS, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(team.abbr, cx, 292);
-
-  // legend star badge
-  if (team.roster.some((p) => p.legend)) {
-    ctx.fillStyle = "#f2c14e";
-    ctx.font = "20px sans-serif";
-    ctx.fillText("★", cx + 66, 162);
+  if (active) {
+    ctx.strokeStyle = activeColor;
+    ctx.lineWidth = 3;
+    roundRect(ctx, x, y, w, h, 14);
+    ctx.stroke();
   }
+  // color chip with abbr
+  ctx.fillStyle = team.primary;
+  roundRect(ctx, x + 14, y + 14, 120, 120, 12);
+  ctx.fill();
+  ctx.fillStyle = team.secondary;
+  roundRect(ctx, x + 14, y + 100, 120, 34, 12);
+  ctx.fill();
+  ctx.fillStyle = team.accent;
+  ctx.font = "bold 34px Trebuchet MS, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(team.abbr, x + 74, y + 62);
 
+  const tx = x + 156;
+  ctx.textAlign = "left";
+  ctx.fillStyle = active ? activeColor : "#ffd34d";
+  ctx.font = "bold 16px Trebuchet MS, sans-serif";
+  ctx.fillText(label, tx, y + 24);
   ctx.fillStyle = "#fff";
-  ctx.font = "bold 24px Trebuchet MS, sans-serif";
-  ctx.fillText(`${team.city} ${team.name}`, cx, 336);
-
-  // roster with signature moves
+  ctx.font = "bold 26px Trebuchet MS, sans-serif";
+  ctx.fillText(`${team.city} ${team.name}`, tx, y + 54);
   team.roster.forEach((p, i) => {
-    const y = 364 + i * 24;
-    ctx.textAlign = "center";
-    ctx.font = "bold 15px Trebuchet MS, sans-serif";
-    ctx.fillStyle = p.legend ? "#f2c14e" : "rgba(255,255,255,0.8)";
+    ctx.font = "14px Trebuchet MS, sans-serif";
+    ctx.fillStyle = p.legend ? "#f2c14e" : "rgba(255,255,255,0.75)";
     const sig = p.sig ? `  ·  ${p.sig.label}` : "";
-    ctx.fillText(`#${p.num} ${p.name}${sig}`, cx, y);
+    ctx.fillText(`#${p.num} ${p.name}${sig}`, tx, y + 82 + i * 20);
   });
-
-  // arrows
-  const prev = { id: `${which}Prev`, x: cx - 158, y: 186, w: 52, h: 60 };
-  const next = { id: `${which}Next`, x: cx + 106, y: 186, w: 52, h: 60 };
-  drawButton(ctx, prev, "‹", team.secondary);
-  drawButton(ctx, next, "›", team.secondary);
-  g.menuButtons.push(prev, next);
 }
 
 // A small drawn "portrait" of a team's star player for the select screen.

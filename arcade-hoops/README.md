@@ -60,6 +60,14 @@ signature move, and catches fire a bucket sooner; pro-league players are solid a
 - **Tournament** — a 3-round single-elimination bracket vs. escalating-difficulty teams.
   Win all three to be crowned champion; lose once and you're eliminated.
 
+**Team picker** — all teams are shown as a tap-to-pick grid; toggle whether a tap sets
+**your** team or the **opponent**. Your last teams, difficulty, and sound setting are
+remembered between sessions (localStorage).
+
+**Game feel** — screen shake and a colored flash on dunks / threes / blocks, a fading ball
+trail on shots, loose-ball scrambles (everyone crashes the ball on a miss/steal), confetti,
+and a mute toggle on the menu and pause screen.
+
 ## How it's built
 
 Plain TypeScript + HTML5 Canvas, bundled by [Vite](https://vitejs.dev/). No game engine, no

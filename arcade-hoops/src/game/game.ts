@@ -23,7 +23,7 @@ import {
   TURBO_REGEN,
 } from "./constants";
 import { Input } from "./input";
-import { sfx } from "./audio";
+import { sfx, setAudioEnabled } from "./audio";
 import { TEAMS, type TeamDef } from "./teams";
 import type { Athlete, Ball, MatchConfig, Scene, Side, Toast } from "./types";
 import { clamp, dist } from "./vec";
@@ -80,8 +80,59 @@ export class GameState {
   tourneyRound = 0;
   tourneyResult: "won" | "lost" | null = null;
 
+  // polish / feel
+  shake = 0;
+  flash = 0;
+  flashColor = "#ffffff";
+  ballTrail: { x: number; y: number; z: number }[] = [];
+  selectTarget: Side = "home"; // which side the team grid assigns
+  audioOn = true;
+  private looseAge = 0;
+
   constructor() {
     this.cfg = { home: TEAMS[0], away: TEAMS[1], difficulty: 0.5 };
+    this.loadPrefs();
+    setAudioEnabled(this.audioOn);
+  }
+
+  // ---- preferences (localStorage) -----------------------------------------
+
+  private loadPrefs() {
+    try {
+      const raw = localStorage.getItem("courtkings.prefs");
+      if (!raw) return;
+      const p = JSON.parse(raw);
+      if (typeof p.selHome === "number" && p.selHome >= 0 && p.selHome < TEAMS.length) this.selHome = p.selHome;
+      if (typeof p.selAway === "number" && p.selAway >= 0 && p.selAway < TEAMS.length) this.selAway = p.selAway;
+      if (typeof p.difficulty === "number") this.difficulty = clamp(p.difficulty, 0.25, 0.95);
+      if (typeof p.audioOn === "boolean") this.audioOn = p.audioOn;
+    } catch {
+      /* ignore corrupt / unavailable storage */
+    }
+  }
+
+  savePrefs() {
+    try {
+      localStorage.setItem(
+        "courtkings.prefs",
+        JSON.stringify({ selHome: this.selHome, selAway: this.selAway, difficulty: this.difficulty, audioOn: this.audioOn }),
+      );
+    } catch {
+      /* ignore */
+    }
+  }
+
+  toggleMute() {
+    this.audioOn = !this.audioOn;
+    setAudioEnabled(this.audioOn);
+    this.savePrefs();
+  }
+
+  // A "big play" spikes screen shake and a colored flash.
+  private bigPlay(color: string, shake: number) {
+    this.shake = Math.max(this.shake, shake);
+    this.flash = 0.45;
+    this.flashColor = color;
   }
 
   // ---- setup ---------------------------------------------------------------
@@ -103,6 +154,8 @@ export class GameState {
     this.quarter = 1;
     this.gameClock = QUARTER_SECONDS;
     this.overtime = false;
+    this.ballTrail = [];
+    this.savePrefs();
     this.buildTeams();
     this.ball = {
       x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0,
@@ -195,6 +248,8 @@ export class GameState {
     this.particles = this.particles.filter((p) => {
       p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 400 * dt; return p.life > 0;
     });
+    this.shake = Math.max(0, this.shake - dt * 60);
+    this.flash = Math.max(0, this.flash - dt * 2);
 
     switch (this.scene) {
       case "menu": this.updateMenu(input); break;
@@ -204,9 +259,21 @@ export class GameState {
         if (this.tipTimer <= 0) { this.scene = "play"; sfx.whistle(); }
         break;
       case "play": this.updatePlay(dt, input); break;
-      case "paused":
+      case "paused": {
+        const tap = input.takeTap();
+        if (tap) {
+          for (const b of this.menuButtons) {
+            if (tap.x >= b.x && tap.x <= b.x + b.w && tap.y >= b.y && tap.y <= b.y + b.h) {
+              if (b.id === "mute") { this.toggleMute(); return; }
+              if (b.id === "quit") { this.scene = "menu"; this.mode = "exhibition"; return; }
+            }
+          }
+          this.scene = "play";
+          return;
+        }
         if (input.take("PAUSE") || input.take("A")) this.scene = "play";
         break;
+      }
       case "quarterbreak":
         this.tipTimer -= dt;
         if (this.tipTimer <= 0) this.scene = "play";
@@ -231,8 +298,19 @@ export class GameState {
 
   private updateMenu(input: Input) {
     input.context = "menu";
-    const tapped = input.takeTap() !== null;
-    if (tapped || input.take("A") || input.take("PAUSE")) {
+    const tap = input.takeTap();
+    if (tap) {
+      for (const b of this.menuButtons) {
+        if (b.id === "mute" && tap.x >= b.x && tap.x <= b.x + b.w && tap.y >= b.y && tap.y <= b.y + b.h) {
+          this.toggleMute();
+          return;
+        }
+      }
+      sfx.select();
+      this.scene = "select";
+      return;
+    }
+    if (input.take("A") || input.take("PAUSE")) {
       sfx.select();
       this.scene = "select";
     }
@@ -256,13 +334,25 @@ export class GameState {
 
   private handleMenuButton(id: string) {
     sfx.select();
+    // team grid tiles: "pick:<index>"
+    if (id.startsWith("pick:")) {
+      const idx = parseInt(id.slice(5), 10);
+      if (Number.isFinite(idx)) {
+        if (this.selectTarget === "home") this.selHome = idx; else this.selAway = idx;
+        this.savePrefs();
+      }
+      return;
+    }
     switch (id) {
-      case "homePrev": this.selHome = (this.selHome + TEAMS.length - 1) % TEAMS.length; break;
-      case "homeNext": this.selHome = (this.selHome + 1) % TEAMS.length; break;
-      case "awayPrev": this.selAway = (this.selAway + TEAMS.length - 1) % TEAMS.length; break;
-      case "awayNext": this.selAway = (this.selAway + 1) % TEAMS.length; break;
+      case "target": this.selectTarget = this.selectTarget === "home" ? "away" : "home"; break;
+      case "mute": this.toggleMute(); break;
+      case "homePrev": this.selHome = (this.selHome + TEAMS.length - 1) % TEAMS.length; this.savePrefs(); break;
+      case "homeNext": this.selHome = (this.selHome + 1) % TEAMS.length; this.savePrefs(); break;
+      case "awayPrev": this.selAway = (this.selAway + TEAMS.length - 1) % TEAMS.length; this.savePrefs(); break;
+      case "awayNext": this.selAway = (this.selAway + 1) % TEAMS.length; this.savePrefs(); break;
       case "diff":
         this.difficulty = this.difficulty >= 0.85 ? 0.25 : this.difficulty + 0.3;
+        this.savePrefs();
         break;
       case "exhibition":
         this.mode = "exhibition";
@@ -338,6 +428,13 @@ export class GameState {
     }
 
     input.update();
+    // On a loose ball, hand control to the closest home player so the user can
+    // chase the rebound / steal.
+    if (this.ball.mode === "loose") {
+      let best = this.controlledIndex, bd = Infinity;
+      this.home.forEach((h, i) => { const d = dist(h, this.ball); if (d < bd) { bd = d; best = i; } });
+      this.controlledIndex = best;
+    }
     input.context = this.possession === "home" ? "offense" : "defense";
 
     this.updateControlled(dt, input);
@@ -407,6 +504,14 @@ export class GameState {
         (this.possession === "away" || a.hasBall);
       if (isUser) continue;
       if (a.stunned > 0 || a.dunking > 0) { a.vx *= 0.8; a.vy *= 0.8; continue; }
+
+      // loose-ball scramble: everyone crashes toward the ball
+      if (this.ball.mode === "loose") {
+        const urgency = dist(a, this.ball) < 220 ? 1.15 : 0.9;
+        this.moveToward(a, this.ball.x, this.ball.y, urgency);
+        a.turbo = Math.min(TURBO_MAX, a.turbo + TURBO_REGEN * dt);
+        continue;
+      }
 
       if (a.side === this.possession) this.aiOffense(a, D, dt);
       else this.aiDefense(a, D, dt);
@@ -552,6 +657,15 @@ export class GameState {
 
   private updateBall(dt: number) {
     const ball = this.ball;
+    // ball trail — only while in flight
+    if (ball.mode === "shot" || ball.mode === "pass") {
+      this.ballTrail.push({ x: ball.x, y: ball.y, z: ball.z });
+      if (this.ballTrail.length > 12) this.ballTrail.shift();
+    } else if (this.ballTrail.length) {
+      this.ballTrail.length = 0;
+    }
+    if (ball.mode !== "loose") this.looseAge = 0;
+
     if (ball.mode === "held" && ball.holder) {
       const h = ball.holder;
       ball.x = h.x + h.facing * 16;
@@ -575,6 +689,18 @@ export class GameState {
     }
     if (ball.mode === "loose") {
       ball.looseTimer = Math.max(0, ball.looseTimer - dt);
+      this.looseAge += dt;
+      // safety: if a loose ball sits unclaimed too long, award it to the
+      // nearest eligible player so play never stalls.
+      if (this.looseAge > 5 && ball.z < 40) {
+        let best: Athlete | null = null, bd = Infinity;
+        for (const a of this.all) {
+          if (a.stunned > 0 || a.dunking > 0) continue;
+          const d = dist(a, ball);
+          if (d < bd) { bd = d; best = a; }
+        }
+        if (best) { this.giveBall(best); this.shotClock = Math.max(this.shotClock, 8); this.looseAge = 0; return; }
+      }
       ball.vz -= GRAVITY * dt;
       ball.x += ball.vx * dt;
       ball.y += ball.vy * dt;
@@ -703,6 +829,7 @@ export class GameState {
       this.toast(pts === 3 ? "3 POINTER!" : "BUCKET!", pts === 3 ? "#4dd2ff" : "#8dffab", false);
       if (pts === 3) sfx.score3(); else sfx.score2();
       this.spawnConfetti(this.hoopFor(shooter.side));
+      this.bigPlay(pts === 3 ? "#4dd2ff" : "#8dffab", pts === 3 ? 13 : 8);
       this.freeze = 1.0;
       this.afterScore(shooter.side);
     } else {
@@ -793,6 +920,7 @@ export class GameState {
     for (const o of this.teamOf(a.side === "home" ? "away" : "home")) { o.streak = 0; o.onFire = false; }
     sfx.dunk();
     this.spawnConfetti(this.hoopFor(a.side));
+    this.bigPlay("#ffd34d", 20);
     this.freeze = 1.0;
     a.hasBall = false;
     this.afterScore(a.side);
@@ -827,6 +955,7 @@ export class GameState {
       if (Math.random() < clamp(chance, 0.1, 0.85)) {
         sfx.block();
         this.toast("BLOCKED!", "#ff5566", true);
+        this.bigPlay("#ff5566", 14);
         ball.makeIntended = false;
         ball.mode = "loose";
         ball.vx = rand(220, -220); ball.vy = rand(220, -220); ball.vz = 60;
