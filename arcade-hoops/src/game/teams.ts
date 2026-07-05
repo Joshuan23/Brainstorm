@@ -1,5 +1,7 @@
 // Original, App-Store-safe teams and players. No real NBA marks — swap these
-// for licensed rosters only if you hold the rights.
+// for licensed rosters only if you hold the rights (see roster-override.ts).
+
+import { ROSTER_OVERRIDE } from "./roster-override";
 
 // Signature-move categories. Each maps to a concrete gameplay effect in
 // game.ts (see applySig* helpers). The `label` is the flashy on-court call-out.
@@ -311,6 +313,20 @@ function proRoster(ti: number): PlayerDef[] {
 PRO_CONFIG.forEach(([id, city, name, abbr, primary, secondary, accent], ti) => {
   TEAMS.push({ id, city, name, abbr, primary, secondary, accent, roster: proRoster(ti) });
 });
+
+// Apply the optional real-roster override (see roster-override.ts). This runs
+// last so licensed data wins over the trademark-safe defaults; an empty map
+// leaves everything untouched.
+for (const [id, ov] of Object.entries(ROSTER_OVERRIDE)) {
+  const team = TEAMS.find((t) => t.id === id);
+  if (!team) continue;
+  if (ov.team) Object.assign(team, ov.team);
+  if (ov.players) {
+    ov.players.forEach((p, i) => {
+      if (team.roster[i]) Object.assign(team.roster[i], p);
+    });
+  }
+}
 
 export function teamById(id: string): TeamDef {
   return TEAMS.find((t) => t.id === id) ?? TEAMS[0];
