@@ -134,6 +134,90 @@ TEAMS.push({
   ],
 });
 
+// ---------------------------------------------------------------------------
+// LEGENDS LEAGUE
+// A full slate of tribute teams. Every player is an original, trademark-safe
+// homage — recognizable by jersey number, nickname, and play style, never by
+// real name or likeness (keeps the game App Store shippable). For a private,
+// unpublished build you may rename them; do NOT ship real names/likenesses
+// without an NBA/NBPA license. See the branding note in README.md.
+// ---------------------------------------------------------------------------
+
+const LEGEND_TEAMS: TeamDef[] = [
+  {
+    id: "showtime",
+    city: "Sunset",
+    name: "Showtime",
+    abbr: "SHO",
+    primary: "#6b21a8",
+    secondary: "#1a1a2e",
+    accent: "#f9d616",
+    roster: [
+      { name: "Mamba", num: 24, speed: 0.9, shooting: 0.96, dunk: 0.85, steal: 0.82, legend: true },
+      { name: "Chef", num: 30, speed: 0.85, shooting: 1.0, dunk: 0.5, steal: 0.78, legend: true },
+      { name: "Slim", num: 35, speed: 0.82, shooting: 0.94, dunk: 0.86, steal: 0.7, legend: true },
+    ],
+  },
+  {
+    id: "towers",
+    city: "Empire",
+    name: "Towers",
+    abbr: "TWR",
+    primary: "#0f2a4a",
+    secondary: "#0a1524",
+    accent: "#c9d3e0",
+    roster: [
+      { name: "Diesel", num: 34, speed: 0.55, shooting: 0.5, dunk: 1.0, steal: 0.55, legend: true },
+      { name: "Stilt", num: 13, speed: 0.72, shooting: 0.58, dunk: 1.0, steal: 0.6, legend: true },
+      { name: "Cap", num: 33, speed: 0.6, shooting: 0.82, dunk: 0.92, steal: 0.6, legend: true },
+    ],
+  },
+  {
+    id: "grit",
+    city: "Motor",
+    name: "Grit",
+    abbr: "GRT",
+    primary: "#b91c1c",
+    secondary: "#111827",
+    accent: "#e5e7eb",
+    roster: [
+      { name: "Answer", num: 3, speed: 1.0, shooting: 0.86, dunk: 0.6, steal: 0.96, legend: true },
+      { name: "Glove", num: 20, speed: 0.92, shooting: 0.7, dunk: 0.6, steal: 1.0, legend: true },
+      { name: "Mailman", num: 32, speed: 0.68, shooting: 0.72, dunk: 0.96, steal: 0.62, legend: true },
+    ],
+  },
+  {
+    id: "primeera",
+    city: "Prime",
+    name: "Era",
+    abbr: "NOW",
+    primary: "#1f2937",
+    secondary: "#0b0f16",
+    accent: "#f2c14e",
+    roster: [
+      { name: "King", num: 6, speed: 0.9, shooting: 0.82, dunk: 0.95, steal: 0.85, legend: true },
+      { name: "Greek", num: 34, speed: 0.92, shooting: 0.68, dunk: 1.0, steal: 0.8, legend: true },
+      { name: "Brow", num: 1, speed: 0.78, shooting: 0.74, dunk: 0.95, steal: 0.82, legend: true },
+    ],
+  },
+  {
+    id: "generals",
+    city: "Downtown",
+    name: "Generals",
+    abbr: "GEN",
+    primary: "#047857",
+    secondary: "#04231a",
+    accent: "#f7f7f2",
+    roster: [
+      { name: "Show", num: 32, speed: 0.88, shooting: 0.8, dunk: 0.82, steal: 0.82, legend: true },
+      { name: "Post", num: 12, speed: 0.82, shooting: 0.82, dunk: 0.55, steal: 0.95, legend: true },
+      { name: "Zo", num: 2, speed: 0.95, shooting: 0.82, dunk: 0.6, steal: 0.9, legend: true },
+    ],
+  },
+];
+
+TEAMS.push(...LEGEND_TEAMS);
+
 export function teamById(id: string): TeamDef {
   return TEAMS.find((t) => t.id === id) ?? TEAMS[0];
 }
