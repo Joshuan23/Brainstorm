@@ -34,6 +34,8 @@ const input = new Input(canvas, () => ({ scale, ox, oy }));
 
 // Expose state for automated smoke tests / debugging (harmless in production).
 (window as unknown as { __game: GameState }).__game = game;
+import { TEAMS } from "./game/teams";
+(window as unknown as { __teams: typeof TEAMS }).__teams = TEAMS;
 
 // Unlock the Web Audio context on the first user gesture (iOS/Safari policy).
 const unlock = () => {
