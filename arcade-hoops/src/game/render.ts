@@ -162,6 +162,32 @@ function drawAthlete(ctx: CanvasRenderingContext2D, a: Athlete, controlled: bool
     ctx.fill();
   }
 
+  // legend aura (gold shimmer) — shown when not already blazing on fire
+  if (a.def.legend && !a.onFire) {
+    const t = performance.now() * 0.005;
+    ctx.save();
+    ctx.globalAlpha = 0.45 + Math.sin(t * 2) * 0.15;
+    const glow = ctx.createRadialGradient(x, y - 4, 6, x, y - 4, 34);
+    glow.addColorStop(0, "rgba(242,193,78,0.0)");
+    glow.addColorStop(0.6, "rgba(242,193,78,0.55)");
+    glow.addColorStop(1, "rgba(242,193,78,0.0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y - 4, 34, 0, Math.PI * 2);
+    ctx.fill();
+    // little sparkle stars
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = "#ffe9a8";
+    ctx.font = "10px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    for (let i = 0; i < 3; i++) {
+      const ang = t + (i * Math.PI * 2) / 3;
+      ctx.fillText("✦", x + Math.cos(ang) * 26, y - 4 + Math.sin(ang) * 26);
+    }
+    ctx.restore();
+  }
+
   // on-fire aura
   if (a.onFire) {
     const t = performance.now() * 0.01;

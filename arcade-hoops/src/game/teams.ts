@@ -9,6 +9,10 @@ export interface PlayerDef {
   shooting: number;
   dunk: number;
   steal: number;
+  // Marquee "legend" — gets a gold aura and catches fire one bucket sooner.
+  // (Original tribute character; swap `name` for a licensed one only if you
+  // hold the rights — see README's branding note.)
+  legend?: boolean;
 }
 
 export interface TeamDef {
@@ -108,6 +112,27 @@ export const TEAMS: TeamDef[] = [
     ],
   },
 ];
+
+// Marquee tribute team headlined by the legendary #23. "Air" is an original
+// nickname tribute to the greatest to ever lace them up — kept trademark-safe
+// so the game stays App Store shippable. For personal/private builds you may
+// change this `name` to the real one; do NOT do so for a published app.
+TEAMS.push({
+  id: "legends",
+  city: "Skyline",
+  name: "Legends",
+  abbr: "GOAT",
+  primary: "#c0122b",
+  secondary: "#1a1a1a",
+  accent: "#f2c14e",
+  roster: [
+    { name: "Air", num: 23, speed: 0.97, shooting: 0.95, dunk: 1.0, steal: 0.95, legend: true },
+    // "Logo" #44 — a trademark-safe tribute to the clutch guard whose
+    // silhouette became the league's emblem. Elite shooter and stealer.
+    { name: "Logo", num: 44, speed: 0.88, shooting: 0.97, dunk: 0.7, steal: 0.9, legend: true },
+    { name: "Rip", num: 33, speed: 0.62, shooting: 0.6, dunk: 0.95, steal: 0.6 },
+  ],
+});
 
 export function teamById(id: string): TeamDef {
   return TEAMS.find((t) => t.id === id) ?? TEAMS[0];

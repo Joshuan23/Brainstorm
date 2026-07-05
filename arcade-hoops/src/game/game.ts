@@ -30,6 +30,9 @@ import { clamp, dist } from "./vec";
 
 const rand = (a = 1, b = 0) => b + Math.random() * (a - b);
 
+// Legends catch fire one make sooner than everyone else.
+const fireThreshold = (a: Athlete) => (a.def.legend ? Math.max(2, SCORE_TO_FIRE - 1) : SCORE_TO_FIRE);
+
 export class GameState {
   scene: Scene = "menu";
   cfg: MatchConfig;
@@ -56,9 +59,10 @@ export class GameState {
     active: false, value: 0, dir: 1, shooter: null, holdTime: 0,
   };
 
-  // menu selection
-  selHome = 0;
-  selAway = 1;
+  // menu selection — default the player to the marquee Legends team (#23),
+  // versus a contrasting-color opponent so the two sides read clearly.
+  selHome = Math.max(0, TEAMS.findIndex((t) => t.id === "legends"));
+  selAway = Math.max(1, TEAMS.findIndex((t) => t.id === "frost"));
   difficulty = 0.5;
   menuButtons: { id: string; x: number; y: number; w: number; h: number }[] = [];
 
@@ -614,7 +618,7 @@ export class GameState {
       for (const m of this.teamOf(shooter.side)) if (m !== shooter) m.streak = Math.max(0, m.streak);
       // opponents cool
       for (const o of this.teamOf(shooter.side === "home" ? "away" : "home")) { o.streak = 0; o.onFire = false; }
-      if (shooter.streak >= SCORE_TO_FIRE && !shooter.onFire) {
+      if (shooter.streak >= fireThreshold(shooter) && !shooter.onFire) {
         shooter.onFire = true;
         this.toast(`${shooter.def.name.toUpperCase()} IS ON FIRE!`, "#ff7a1a", true);
         sfx.fire();
@@ -689,7 +693,7 @@ export class GameState {
     }
     if (a.side === "home") this.score.home += 2; else this.score.away += 2;
     a.streak++;
-    if (a.streak >= SCORE_TO_FIRE && !a.onFire) {
+    if (a.streak >= fireThreshold(a) && !a.onFire) {
       a.onFire = true;
       this.toast(`${a.def.name.toUpperCase()} IS ON FIRE!`, "#ff7a1a", true);
       sfx.fire();
