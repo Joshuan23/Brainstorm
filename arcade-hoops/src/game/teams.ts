@@ -1,6 +1,21 @@
 // Original, App-Store-safe teams and players. No real NBA marks — swap these
 // for licensed rosters only if you hold the rights.
 
+// Signature-move categories. Each maps to a concrete gameplay effect in
+// game.ts (see applySig* helpers). The `label` is the flashy on-court call-out.
+export type SigId =
+  | "dunkrange" // dunk from way out (Air Walk / Euro Step)
+  | "deep" // deadly shooter, ignores distance falloff (Logo Range / Splash)
+  | "unblock" // dunks can't be blocked and stun defenders (The Diesel)
+  | "lockdown" // boosted steals & blocks (The Glove / Goaltender)
+  | "motor" // turbo barely drains, extra speed (Crossover / Fast Break)
+  | "general"; // passes can't be intercepted (No-Look / Dime Machine)
+
+export interface Signature {
+  id: SigId;
+  label: string;
+}
+
 export interface PlayerDef {
   name: string;
   num: number;
@@ -13,6 +28,8 @@ export interface PlayerDef {
   // (Original tribute character; swap `name` for a licensed one only if you
   // hold the rights — see README's branding note.)
   legend?: boolean;
+  // Optional signature special move.
+  sig?: Signature;
 }
 
 export interface TeamDef {
@@ -126,10 +143,10 @@ TEAMS.push({
   secondary: "#1a1a1a",
   accent: "#f2c14e",
   roster: [
-    { name: "Air", num: 23, speed: 0.97, shooting: 0.95, dunk: 1.0, steal: 0.95, legend: true },
+    { name: "Air", num: 23, speed: 0.97, shooting: 0.95, dunk: 1.0, steal: 0.95, legend: true, sig: { id: "dunkrange", label: "AIR WALK" } },
     // "Logo" #44 — a trademark-safe tribute to the clutch guard whose
     // silhouette became the league's emblem. Elite shooter and stealer.
-    { name: "Logo", num: 44, speed: 0.88, shooting: 0.97, dunk: 0.7, steal: 0.9, legend: true },
+    { name: "Logo", num: 44, speed: 0.88, shooting: 0.97, dunk: 0.7, steal: 0.9, legend: true, sig: { id: "deep", label: "LOGO RANGE" } },
     { name: "Rip", num: 33, speed: 0.62, shooting: 0.6, dunk: 0.95, steal: 0.6 },
   ],
 });
@@ -153,9 +170,9 @@ const LEGEND_TEAMS: TeamDef[] = [
     secondary: "#1a1a2e",
     accent: "#f9d616",
     roster: [
-      { name: "Mamba", num: 24, speed: 0.9, shooting: 0.96, dunk: 0.85, steal: 0.82, legend: true },
-      { name: "Chef", num: 30, speed: 0.85, shooting: 1.0, dunk: 0.5, steal: 0.78, legend: true },
-      { name: "Slim", num: 35, speed: 0.82, shooting: 0.94, dunk: 0.86, steal: 0.7, legend: true },
+      { name: "Mamba", num: 24, speed: 0.9, shooting: 0.96, dunk: 0.85, steal: 0.82, legend: true, sig: { id: "deep", label: "MAMBA MENTALITY" } },
+      { name: "Chef", num: 30, speed: 0.85, shooting: 1.0, dunk: 0.5, steal: 0.78, legend: true, sig: { id: "deep", label: "SPLASH" } },
+      { name: "Slim", num: 35, speed: 0.82, shooting: 0.94, dunk: 0.86, steal: 0.7, legend: true, sig: { id: "dunkrange", label: "DEATH LINEUP" } },
     ],
   },
   {
@@ -167,9 +184,9 @@ const LEGEND_TEAMS: TeamDef[] = [
     secondary: "#0a1524",
     accent: "#c9d3e0",
     roster: [
-      { name: "Diesel", num: 34, speed: 0.55, shooting: 0.5, dunk: 1.0, steal: 0.55, legend: true },
-      { name: "Stilt", num: 13, speed: 0.72, shooting: 0.58, dunk: 1.0, steal: 0.6, legend: true },
-      { name: "Cap", num: 33, speed: 0.6, shooting: 0.82, dunk: 0.92, steal: 0.6, legend: true },
+      { name: "Diesel", num: 34, speed: 0.55, shooting: 0.5, dunk: 1.0, steal: 0.55, legend: true, sig: { id: "unblock", label: "THE DIESEL" } },
+      { name: "Stilt", num: 13, speed: 0.72, shooting: 0.58, dunk: 1.0, steal: 0.6, legend: true, sig: { id: "lockdown", label: "GOALTENDER" } },
+      { name: "Cap", num: 33, speed: 0.6, shooting: 0.82, dunk: 0.92, steal: 0.6, legend: true, sig: { id: "deep", label: "SKYHOOK" } },
     ],
   },
   {
@@ -181,9 +198,9 @@ const LEGEND_TEAMS: TeamDef[] = [
     secondary: "#111827",
     accent: "#e5e7eb",
     roster: [
-      { name: "Answer", num: 3, speed: 1.0, shooting: 0.86, dunk: 0.6, steal: 0.96, legend: true },
-      { name: "Glove", num: 20, speed: 0.92, shooting: 0.7, dunk: 0.6, steal: 1.0, legend: true },
-      { name: "Mailman", num: 32, speed: 0.68, shooting: 0.72, dunk: 0.96, steal: 0.62, legend: true },
+      { name: "Answer", num: 3, speed: 1.0, shooting: 0.86, dunk: 0.6, steal: 0.96, legend: true, sig: { id: "motor", label: "CROSSOVER" } },
+      { name: "Glove", num: 20, speed: 0.92, shooting: 0.7, dunk: 0.6, steal: 1.0, legend: true, sig: { id: "lockdown", label: "THE GLOVE" } },
+      { name: "Mailman", num: 32, speed: 0.68, shooting: 0.72, dunk: 0.96, steal: 0.62, legend: true, sig: { id: "unblock", label: "SPECIAL DELIVERY" } },
     ],
   },
   {
@@ -195,9 +212,9 @@ const LEGEND_TEAMS: TeamDef[] = [
     secondary: "#0b0f16",
     accent: "#f2c14e",
     roster: [
-      { name: "King", num: 6, speed: 0.9, shooting: 0.82, dunk: 0.95, steal: 0.85, legend: true },
-      { name: "Greek", num: 34, speed: 0.92, shooting: 0.68, dunk: 1.0, steal: 0.8, legend: true },
-      { name: "Brow", num: 1, speed: 0.78, shooting: 0.74, dunk: 0.95, steal: 0.82, legend: true },
+      { name: "King", num: 6, speed: 0.9, shooting: 0.82, dunk: 0.95, steal: 0.85, legend: true, sig: { id: "lockdown", label: "CHASEDOWN" } },
+      { name: "Greek", num: 34, speed: 0.92, shooting: 0.68, dunk: 1.0, steal: 0.8, legend: true, sig: { id: "dunkrange", label: "EURO STEP" } },
+      { name: "Brow", num: 1, speed: 0.78, shooting: 0.74, dunk: 0.95, steal: 0.82, legend: true, sig: { id: "lockdown", label: "THE BROW" } },
     ],
   },
   {
@@ -209,9 +226,9 @@ const LEGEND_TEAMS: TeamDef[] = [
     secondary: "#04231a",
     accent: "#f7f7f2",
     roster: [
-      { name: "Show", num: 32, speed: 0.88, shooting: 0.8, dunk: 0.82, steal: 0.82, legend: true },
-      { name: "Post", num: 12, speed: 0.82, shooting: 0.82, dunk: 0.55, steal: 0.95, legend: true },
-      { name: "Zo", num: 2, speed: 0.95, shooting: 0.82, dunk: 0.6, steal: 0.9, legend: true },
+      { name: "Show", num: 32, speed: 0.88, shooting: 0.8, dunk: 0.82, steal: 0.82, legend: true, sig: { id: "general", label: "NO-LOOK" } },
+      { name: "Post", num: 12, speed: 0.82, shooting: 0.82, dunk: 0.55, steal: 0.95, legend: true, sig: { id: "general", label: "DIME MACHINE" } },
+      { name: "Zo", num: 2, speed: 0.95, shooting: 0.82, dunk: 0.6, steal: 0.9, legend: true, sig: { id: "motor", label: "FAST BREAK" } },
     ],
   },
 ];

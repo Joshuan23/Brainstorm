@@ -31,6 +31,9 @@ export function render(ctx: CanvasRenderingContext2D, g: GameState, input: Input
     case "select":
       drawSelect(ctx, g);
       break;
+    case "bracket":
+      drawBracket(ctx, g);
+      break;
     default:
       drawCourt(ctx);
       drawEntities(ctx, g);
@@ -488,23 +491,101 @@ function drawPause(ctx: CanvasRenderingContext2D) {
 }
 
 function drawFinal(ctx: CanvasRenderingContext2D, g: GameState) {
-  ctx.fillStyle = "rgba(0,0,0,0.72)";
+  ctx.fillStyle = "rgba(0,0,0,0.78)";
   ctx.fillRect(0, 0, VW, VH);
-  const homeWin = g.score.home > g.score.away;
-  const winner = homeWin ? g.cfg.home : g.cfg.away;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillStyle = winner.primary;
-  ctx.font = "bold 64px Trebuchet MS, sans-serif";
-  ctx.fillText(`${winner.city} ${winner.name}`, VW / 2, VH / 2 - 80);
+
+  const champion = g.mode === "tournament" && g.tourneyResult === "won";
+  const eliminated = g.mode === "tournament" && g.tourneyResult === "lost";
+  const homeWin = g.score.home > g.score.away;
+  const winner = homeWin ? g.cfg.home : g.cfg.away;
+
+  if (champion) {
+    // confetti-style gold header
+    ctx.fillStyle = "#f2c14e";
+    ctx.font = "bold 40px Trebuchet MS, sans-serif";
+    ctx.fillText("🏆  TOURNAMENT CHAMPIONS  🏆", VW / 2, VH / 2 - 120);
+    ctx.fillStyle = g.cfg.home.primary;
+    ctx.font = "bold 64px Trebuchet MS, sans-serif";
+    ctx.fillText(`${g.cfg.home.city} ${g.cfg.home.name}`, VW / 2, VH / 2 - 55);
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 24px Trebuchet MS, sans-serif";
+    ctx.fillText("won it all — 3 rounds, undefeated!", VW / 2, VH / 2 - 6);
+  } else if (eliminated) {
+    ctx.fillStyle = "#ff5566";
+    ctx.font = "bold 60px Trebuchet MS, sans-serif";
+    ctx.fillText("ELIMINATED", VW / 2, VH / 2 - 90);
+    ctx.fillStyle = winner.primary;
+    ctx.font = "bold 40px Trebuchet MS, sans-serif";
+    ctx.fillText(`${winner.city} ${winner.name} advance`, VW / 2, VH / 2 - 36);
+    ctx.fillStyle = "rgba(255,255,255,0.8)";
+    ctx.font = "20px Trebuchet MS, sans-serif";
+    ctx.fillText(`You reached round ${g.tourneyRound + 1} of 3`, VW / 2, VH / 2 + 2);
+  } else {
+    ctx.fillStyle = winner.primary;
+    ctx.font = "bold 64px Trebuchet MS, sans-serif";
+    ctx.fillText(`${winner.city} ${winner.name}`, VW / 2, VH / 2 - 80);
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 34px Trebuchet MS, sans-serif";
+    ctx.fillText("WIN!", VW / 2, VH / 2 - 30);
+  }
+
   ctx.fillStyle = "#fff";
-  ctx.font = "bold 34px Trebuchet MS, sans-serif";
-  ctx.fillText("WIN!", VW / 2, VH / 2 - 30);
   ctx.font = "bold 46px Trebuchet MS, monospace";
-  ctx.fillText(`${g.cfg.home.abbr} ${g.score.home} — ${g.score.away} ${g.cfg.away.abbr}`, VW / 2, VH / 2 + 30);
+  ctx.fillText(`${g.cfg.home.abbr} ${g.score.home} — ${g.score.away} ${g.cfg.away.abbr}`, VW / 2, VH / 2 + 44);
   ctx.font = "22px Trebuchet MS, sans-serif";
   ctx.fillStyle = "#ffd34d";
-  ctx.fillText("Tap / press ENTER for menu", VW / 2, VH / 2 + 90);
+  ctx.fillText("Tap / press ENTER for menu", VW / 2, VH / 2 + 100);
+}
+
+function drawBracket(ctx: CanvasRenderingContext2D, g: GameState) {
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#f2c14e";
+  ctx.font = "bold 44px Trebuchet MS, sans-serif";
+  ctx.fillText("★ TOURNAMENT ★", VW / 2, 90);
+
+  const total = g.tourneyOpponents.length;
+  ctx.fillStyle = "#8dffab";
+  ctx.font = "bold 26px Trebuchet MS, sans-serif";
+  ctx.fillText(`ROUND ${g.tourneyRound} CLEARED  —  ${g.tourneyRound} of ${total} wins`, VW / 2, 150);
+
+  // your team
+  ctx.fillStyle = g.cfg.home.primary;
+  ctx.font = "bold 30px Trebuchet MS, sans-serif";
+  ctx.fillText(`${g.cfg.home.city} ${g.cfg.home.name}`, VW / 2, 210);
+
+  // defeated so far
+  ctx.fillStyle = "rgba(255,255,255,0.65)";
+  ctx.font = "18px Trebuchet MS, sans-serif";
+  const beaten = g.tourneyOpponents
+    .slice(0, g.tourneyRound)
+    .map((i) => `✓ ${TEAMS[i].city} ${TEAMS[i].name}`)
+    .join("     ");
+  ctx.fillText(beaten, VW / 2, 260);
+
+  // next opponent
+  const next = TEAMS[g.tourneyOpponents[g.tourneyRound]];
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 22px Trebuchet MS, sans-serif";
+  ctx.fillText("NEXT UP", VW / 2, 330);
+  ctx.save();
+  drawPortrait(ctx, next, VW / 2, 400);
+  ctx.restore();
+  ctx.fillStyle = next.primary;
+  ctx.font = "bold 40px Trebuchet MS, sans-serif";
+  ctx.fillText(`${next.city} ${next.name}`, VW / 2, 470);
+  ctx.fillStyle = "rgba(255,255,255,0.7)";
+  ctx.font = "17px Trebuchet MS, sans-serif";
+  ctx.fillText(next.roster.map((p) => `#${p.num} ${p.name}`).join("   ·   "), VW / 2, 505);
+
+  ctx.fillStyle = "#ffd34d";
+  ctx.font = "bold 24px Trebuchet MS, sans-serif";
+  const pulse = 0.6 + Math.sin(performance.now() * 0.005) * 0.4;
+  ctx.globalAlpha = pulse;
+  ctx.fillText("TAP / PRESS ENTER TO TIP OFF", VW / 2, 580);
+  ctx.globalAlpha = 1;
 }
 
 // ---- menu / select ---------------------------------------------------------
@@ -553,10 +634,12 @@ function drawSelect(ctx: CanvasRenderingContext2D, g: GameState) {
   drawButton(ctx, db, `DIFFICULTY: ${diffLabel}`, "#8b5cf6");
   g.menuButtons.push(db);
 
-  // start
-  const sb = { id: "start", x: VW / 2 - 150, y: 540, w: 300, h: 66 };
-  drawButton(ctx, sb, "START GAME", "#22c55e");
-  g.menuButtons.push(sb);
+  // start modes
+  const exh = { id: "exhibition", x: VW / 2 - 312, y: 540, w: 296, h: 66 };
+  const tourn = { id: "tournament", x: VW / 2 + 16, y: 540, w: 296, h: 66 };
+  drawButton(ctx, exh, "EXHIBITION", "#22c55e");
+  drawButton(ctx, tourn, "★ TOURNAMENT", "#f59e0b");
+  g.menuButtons.push(exh, tourn);
 
   const bb = { id: "back", x: 30, y: 30, w: 90, h: 40 };
   drawButton(ctx, bb, "BACK", "#334");
@@ -574,36 +657,91 @@ function drawTeamPicker(
   ctx.fillStyle = "#ffd34d";
   ctx.font = "bold 22px Trebuchet MS, sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(label, cx, 120);
+  ctx.fillText(label, cx, 116);
 
-  // jersey swatch
-  ctx.fillStyle = team.primary;
-  roundRect(ctx, cx - 80, 150, 160, 160, 18);
-  ctx.fill();
+  // portrait card
   ctx.fillStyle = team.secondary;
-  roundRect(ctx, cx - 80, 250, 160, 60, 18);
+  roundRect(ctx, cx - 88, 140, 176, 172, 18);
   ctx.fill();
+  ctx.fillStyle = team.primary;
+  roundRect(ctx, cx - 88, 140, 176, 118, 18);
+  ctx.fill();
+
+  // star player portrait (roster[0])
+  drawPortrait(ctx, team, cx, 224);
+
+  // abbr chip
   ctx.fillStyle = team.accent;
-  ctx.font = "bold 60px Trebuchet MS, sans-serif";
-  ctx.fillText(team.abbr, cx, 210);
+  ctx.font = "bold 20px Trebuchet MS, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(team.abbr, cx, 292);
+
+  // legend star badge
+  if (team.roster.some((p) => p.legend)) {
+    ctx.fillStyle = "#f2c14e";
+    ctx.font = "20px sans-serif";
+    ctx.fillText("★", cx + 66, 162);
+  }
 
   ctx.fillStyle = "#fff";
-  ctx.font = "bold 26px Trebuchet MS, sans-serif";
-  ctx.fillText(`${team.city} ${team.name}`, cx, 340);
+  ctx.font = "bold 24px Trebuchet MS, sans-serif";
+  ctx.fillText(`${team.city} ${team.name}`, cx, 336);
 
-  // roster
-  ctx.font = "15px Trebuchet MS, sans-serif";
-  ctx.fillStyle = "rgba(255,255,255,0.7)";
+  // roster with signature moves
   team.roster.forEach((p, i) => {
-    ctx.fillText(`#${p.num} ${p.name}`, cx, 370 + i * 22);
+    const y = 364 + i * 24;
+    ctx.textAlign = "center";
+    ctx.font = "bold 15px Trebuchet MS, sans-serif";
+    ctx.fillStyle = p.legend ? "#f2c14e" : "rgba(255,255,255,0.8)";
+    const sig = p.sig ? `  ·  ${p.sig.label}` : "";
+    ctx.fillText(`#${p.num} ${p.name}${sig}`, cx, y);
   });
 
   // arrows
-  const prev = { id: `${which}Prev`, x: cx - 150, y: 200, w: 54, h: 60 };
-  const next = { id: `${which}Next`, x: cx + 96, y: 200, w: 54, h: 60 };
+  const prev = { id: `${which}Prev`, x: cx - 158, y: 186, w: 52, h: 60 };
+  const next = { id: `${which}Next`, x: cx + 106, y: 186, w: 52, h: 60 };
   drawButton(ctx, prev, "‹", team.secondary);
   drawButton(ctx, next, "›", team.secondary);
   g.menuButtons.push(prev, next);
+}
+
+// A small drawn "portrait" of a team's star player for the select screen.
+function drawPortrait(ctx: CanvasRenderingContext2D, team: (typeof TEAMS)[number], cx: number, cy: number) {
+  const star = team.roster[0];
+  ctx.save();
+  // legend glow behind the figure
+  if (star.legend) {
+    const glow = ctx.createRadialGradient(cx, cy, 6, cx, cy, 52);
+    glow.addColorStop(0, "rgba(242,193,78,0.55)");
+    glow.addColorStop(1, "rgba(242,193,78,0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 52, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // torso jersey
+  ctx.fillStyle = team.primary;
+  roundRect(ctx, cx - 30, cy - 6, 60, 58, 12);
+  ctx.fill();
+  ctx.strokeStyle = team.accent;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  // neck/shoulders trim
+  ctx.fillStyle = team.accent;
+  ctx.fillRect(cx - 10, cy - 6, 20, 5);
+  // head
+  ctx.fillStyle = "#e8c39a";
+  ctx.beginPath();
+  ctx.arc(cx, cy - 24, 18, 0, Math.PI * 2);
+  ctx.fill();
+  // big number on jersey
+  ctx.fillStyle = team.accent;
+  ctx.font = "bold 30px Trebuchet MS, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(String(star.num), cx, cy + 24);
+  ctx.restore();
+  ctx.textBaseline = "alphabetic";
 }
 
 function drawButton(

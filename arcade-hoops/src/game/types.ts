@@ -48,11 +48,20 @@ export interface Ball {
   makeIntended: boolean; // scripted to go in (shots)
   points: number; // 2 or 3 for a made basket
   passTo: Athlete | null;
+  passFrom: Athlete | null;
   lastShooter: Athlete | null;
   looseTimer: number; // grace before it can be re-grabbed by shooter
 }
 
-export type Scene = "menu" | "select" | "tip" | "play" | "paused" | "quarterbreak" | "final";
+export type Scene =
+  | "menu"
+  | "select"
+  | "tip"
+  | "play"
+  | "paused"
+  | "quarterbreak"
+  | "bracket"
+  | "final";
 
 export interface MatchConfig {
   home: TeamDef;

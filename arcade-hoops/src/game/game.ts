@@ -33,6 +33,12 @@ const rand = (a = 1, b = 0) => b + Math.random() * (a - b);
 // Legends catch fire one make sooner than everyone else.
 const fireThreshold = (a: Athlete) => (a.def.legend ? Math.max(2, SCORE_TO_FIRE - 1) : SCORE_TO_FIRE);
 
+// Signature-move helpers.
+const sigId = (a: Athlete) => a.def.sig?.id;
+const dunkRangeOf = (a: Athlete) => DUNK_RANGE * (sigId(a) === "dunkrange" ? 1.75 : 1);
+const turboDrainMult = (a: Athlete) => (sigId(a) === "motor" ? 0.45 : 1);
+const speedMult = (a: Athlete) => (sigId(a) === "motor" ? 1.07 : 1);
+
 export class GameState {
   scene: Scene = "menu";
   cfg: MatchConfig;
@@ -68,6 +74,12 @@ export class GameState {
 
   overtime = false;
 
+  // tournament
+  mode: "exhibition" | "tournament" = "exhibition";
+  tourneyOpponents: number[] = []; // TEAMS indices, in bracket order
+  tourneyRound = 0;
+  tourneyResult: "won" | "lost" | null = null;
+
   constructor() {
     this.cfg = { home: TEAMS[0], away: TEAMS[1], difficulty: 0.5 };
   }
@@ -96,7 +108,7 @@ export class GameState {
       x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0,
       holder: null, mode: "loose",
       sx: 0, sy: 0, sz: 0, tx: 0, ty: 0, peak: 0, flightT: 0, elapsed: 0,
-      makeIntended: false, points: 2, passTo: null, lastShooter: null, looseTimer: 0,
+      makeIntended: false, points: 2, passTo: null, passFrom: null, lastShooter: null, looseTimer: 0,
     };
     this.tipOff("home");
     this.scene = "tip";
@@ -199,8 +211,18 @@ export class GameState {
         this.tipTimer -= dt;
         if (this.tipTimer <= 0) this.scene = "play";
         break;
+      case "bracket":
+        if (input.takeTap() !== null || input.take("A") || input.take("PAUSE")) {
+          sfx.select();
+          this.advanceBracket();
+        }
+        break;
       case "final":
-        if (input.takeTap() !== null || input.take("A")) { this.scene = "menu"; }
+        if (input.takeTap() !== null || input.take("A")) {
+          this.mode = "exhibition";
+          this.tourneyResult = null;
+          this.scene = "menu";
+        }
         break;
     }
   }
@@ -227,9 +249,9 @@ export class GameState {
         }
       }
     }
-    // keyboard
-    if (input.take("SWITCH")) { this.handleMenuButton("start"); }
-    if (input.take("A")) { this.handleMenuButton("start"); }
+    // keyboard: Enter/J = exhibition, Space = tournament
+    if (input.take("A")) { this.handleMenuButton("exhibition"); }
+    if (input.take("SWITCH")) { this.handleMenuButton("tournament"); }
   }
 
   private handleMenuButton(id: string) {
@@ -242,12 +264,62 @@ export class GameState {
       case "diff":
         this.difficulty = this.difficulty >= 0.85 ? 0.25 : this.difficulty + 0.3;
         break;
-      case "start":
+      case "exhibition":
+        this.mode = "exhibition";
+        this.tourneyResult = null;
         if (this.selAway === this.selHome) this.selAway = (this.selAway + 1) % TEAMS.length;
         this.startMatch();
         break;
+      case "tournament":
+        this.startTournament();
+        break;
       case "back": this.scene = "menu"; break;
     }
+  }
+
+  // ---- tournament ----------------------------------------------------------
+
+  private startTournament() {
+    this.mode = "tournament";
+    this.tourneyRound = 0;
+    this.tourneyResult = null;
+    // pick 3 distinct opponents (bracket path), excluding the player's team
+    const pool = TEAMS.map((_, i) => i).filter((i) => i !== this.selHome);
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = (Math.random() * (i + 1)) | 0;
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    this.tourneyOpponents = pool.slice(0, 3);
+    this.difficulty = 0.45;
+    this.selAway = this.tourneyOpponents[0];
+    this.startMatch();
+  }
+
+  private finishMatch() {
+    if (this.mode !== "tournament") {
+      this.tourneyResult = null;
+      this.scene = "final";
+      return;
+    }
+    const won = this.score.home > this.score.away;
+    if (!won) {
+      this.tourneyResult = "lost";
+      this.scene = "final";
+      return;
+    }
+    this.tourneyRound++;
+    if (this.tourneyRound >= this.tourneyOpponents.length) {
+      this.tourneyResult = "won";
+      this.scene = "final";
+    } else {
+      this.scene = "bracket";
+    }
+  }
+
+  private advanceBracket() {
+    this.difficulty = clamp(0.45 + this.tourneyRound * 0.2, 0.45, 0.95);
+    this.selAway = this.tourneyOpponents[this.tourneyRound];
+    this.startMatch();
   }
 
   // ---- gameplay ------------------------------------------------------------
@@ -299,11 +371,11 @@ export class GameState {
     // movement
     const ax = input.axis.x, ay = input.axis.y;
     const boosting = input.turboEffective && me.turbo > 1 && (ax || ay);
-    const spd = BASE_SPEED * (boosting ? TURBO_MULT : 1) * (me.onFire ? 1.12 : 1);
+    const spd = BASE_SPEED * (boosting ? TURBO_MULT : 1) * (me.onFire ? 1.12 : 1) * speedMult(me);
     me.vx = ax * spd;
     me.vy = ay * spd;
     if (ax || ay) me.facing = ax >= 0 ? 1 : -1;
-    if (boosting) me.turbo = Math.max(0, me.turbo - TURBO_DRAIN * dt);
+    if (boosting) me.turbo = Math.max(0, me.turbo - TURBO_DRAIN * turboDrainMult(me) * dt);
     else me.turbo = Math.min(TURBO_MAX, me.turbo + TURBO_REGEN * dt);
 
     // actions
@@ -311,7 +383,7 @@ export class GameState {
       const hoop = this.hoopFor("home");
       const d = dist(me, hoop);
       if (input.take("A")) {
-        if (d < DUNK_RANGE) this.startDunk(me);
+        if (d < dunkRangeOf(me)) this.startDunk(me);
         else this.beginShot(me);
       }
       if (input.take("B")) this.passToTeammate(me);
@@ -360,7 +432,7 @@ export class GameState {
       const defender = this.nearestOpponent(a);
       const guarded = defender ? dist(a, defender) : 999;
       // dunk if close
-      if (d < DUNK_RANGE + 10) { this.startDunk(a); return; }
+      if (d < dunkRangeOf(a) + 10) { this.startDunk(a); return; }
       // shoot if open and in a good spot
       const shootUrge = (0.5 + D * 0.5) * (guarded > 90 ? 1 : 0.25);
       const inRange = d < THREE_DIST + 120;
@@ -376,7 +448,7 @@ export class GameState {
         ty += a.y < defender.y ? -80 : 80;
       }
       const boost = a.turbo > 20 && d > 200;
-      if (boost) a.turbo = Math.max(0, a.turbo - TURBO_DRAIN * _dt);
+      if (boost) a.turbo = Math.max(0, a.turbo - TURBO_DRAIN * turboDrainMult(a) * _dt);
       this.moveToward(a, tx, ty, boost ? TURBO_MULT : 1);
     } else {
       // off-ball spacing: get open toward a wing/corner near the hoop
@@ -576,13 +648,15 @@ export class GameState {
     const three = d > THREE_DIST;
     const defender = this.nearestOpponent(shooter);
     const contest = defender ? clamp(1 - dist(shooter, defender) / 140, 0, 1) : 0;
+    const deep = sigId(shooter) === "deep"; // ignores distance falloff, shrugs off contests
 
     let chance =
       0.34 +
       shooter.def.shooting * 0.42 +
-      clamp(1 - d / 720, 0, 1) * 0.28 +
+      (deep ? 0.28 : clamp(1 - d / 720, 0, 1) * 0.28) +
       meterBonus -
-      contest * 0.3;
+      contest * (deep ? 0.16 : 0.3) +
+      (deep ? 0.1 : 0);
     if (shooter.onFire) chance = 0.94;
     chance = clamp(chance, 0.05, 0.97);
     const makeIntended = Math.random() < chance;
@@ -622,6 +696,9 @@ export class GameState {
         shooter.onFire = true;
         this.toast(`${shooter.def.name.toUpperCase()} IS ON FIRE!`, "#ff7a1a", true);
         sfx.fire();
+      }
+      if (pts === 3 && sigId(shooter) === "deep" && shooter.def.sig) {
+        this.toast(shooter.def.sig.label + "!", "#f2c14e", true);
       }
       this.toast(pts === 3 ? "3 POINTER!" : "BUCKET!", pts === 3 ? "#4dd2ff" : "#8dffab", false);
       if (pts === 3) sfx.score3(); else sfx.score2();
@@ -680,16 +757,27 @@ export class GameState {
   }
 
   private finishDunk(a: Athlete) {
+    const unblockable = sigId(a) === "unblock";
     // block check: a defender within range with turbo blocks the dunk
     const blocker = this.teamOf(a.side === "home" ? "away" : "home").find(
       (d) => dist(d, a) < BLOCK_RANGE && d.turbo > 40,
     );
-    if (blocker && Math.random() < 0.22 * this.cfg.difficulty + (a.side === "home" ? 0.0 : 0.05)) {
+    if (!unblockable && blocker && Math.random() < 0.22 * this.cfg.difficulty + (a.side === "home" ? 0.0 : 0.05)) {
       sfx.block();
       this.toast("REJECTED!", "#ff5566", true);
       a.hasBall = false;
       this.becomeLooseFrom(a);
       return;
+    }
+    // The Diesel / Special Delivery: knock down defenders in the paint.
+    if (unblockable) {
+      for (const o of this.teamOf(a.side === "home" ? "away" : "home")) {
+        if (dist(o, a) < 90) {
+          o.stunned = 0.7;
+          const dx = o.x - a.x, dy = o.y - a.y, dd = Math.hypot(dx, dy) || 1;
+          o.vx = (dx / dd) * 280; o.vy = (dy / dd) * 280;
+        }
+      }
     }
     if (a.side === "home") this.score.home += 2; else this.score.away += 2;
     a.streak++;
@@ -697,6 +785,8 @@ export class GameState {
       a.onFire = true;
       this.toast(`${a.def.name.toUpperCase()} IS ON FIRE!`, "#ff7a1a", true);
       sfx.fire();
+    } else if (a.def.sig && (sigId(a) === "dunkrange" || sigId(a) === "unblock")) {
+      this.toast(a.def.sig.label + "!", "#f2c14e", true);
     } else {
       this.toast(a.def.dunk > 0.85 ? "MONSTER JAM!" : "SLAM!", "#ffd34d", true);
     }
@@ -716,11 +806,12 @@ export class GameState {
     const ball = this.ball;
     const handler = ball.holder;
     if (!handler || handler.side === defender.side) return;
-    if (dist(defender, handler) > STEAL_RANGE) return;
-    const chance = 0.3 + defender.def.steal * 0.4 - handler.def.speed * 0.15;
-    if (Math.random() < clamp(chance, 0.08, 0.75)) {
+    const lock = sigId(defender) === "lockdown";
+    if (dist(defender, handler) > STEAL_RANGE * (lock ? 1.5 : 1)) return;
+    const chance = 0.3 + defender.def.steal * 0.4 - handler.def.speed * 0.15 + (lock ? 0.2 : 0);
+    if (Math.random() < clamp(chance, 0.08, 0.9)) {
       sfx.steal();
-      this.toast("STEAL!", "#8dffab", false);
+      this.toast(lock && defender.def.sig ? defender.def.sig.label + "!" : "STEAL!", "#8dffab", false);
       this.giveBall(defender);
       this.shotClock = SHOT_CLOCK;
     }
@@ -730,9 +821,10 @@ export class GameState {
     const ball = this.ball;
     if (ball.mode !== "shot") return;
     if (ball.lastShooter && ball.lastShooter.side === defender.side) return;
-    if (dist(defender, ball) < BLOCK_RANGE && ball.z < RIM_HEIGHT + 30) {
-      const chance = 0.35 + defender.def.dunk * 0.3;
-      if (Math.random() < clamp(chance, 0.1, 0.7)) {
+    const lock = sigId(defender) === "lockdown";
+    if (dist(defender, ball) < BLOCK_RANGE * (lock ? 1.4 : 1) && ball.z < RIM_HEIGHT + 30) {
+      const chance = 0.35 + defender.def.dunk * 0.3 + (lock ? 0.2 : 0);
+      if (Math.random() < clamp(chance, 0.1, 0.85)) {
         sfx.block();
         this.toast("BLOCKED!", "#ff5566", true);
         ball.makeIntended = false;
@@ -791,6 +883,7 @@ export class GameState {
     ball.flightT = clamp(dist(from, to) / 900, 0.15, 0.5);
     ball.elapsed = 0;
     ball.passTo = to;
+    ball.passFrom = from;
     ball.lastShooter = null;
     if (from.side === "home") this.controlledIndex = to.teamIndex;
     sfx.pass();
@@ -799,10 +892,13 @@ export class GameState {
   private resolvePass() {
     const ball = this.ball;
     const to = ball.passTo;
-    // interception check
+    // interception check — No-Look / Dime Machine passes can't be picked off
+    const general = ball.passFrom ? sigId(ball.passFrom) === "general" : false;
     let interceptor: Athlete | null = null;
-    for (const o of this.teamOf((to?.side === "home" ? "away" : "home"))) {
-      if (dist(o, ball) < PLAYER_RADIUS + 16) { interceptor = o; break; }
+    if (!general) {
+      for (const o of this.teamOf((to?.side === "home" ? "away" : "home"))) {
+        if (dist(o, ball) < PLAYER_RADIUS + 16) { interceptor = o; break; }
+      }
     }
     if (interceptor) {
       sfx.steal();
@@ -849,8 +945,7 @@ export class GameState {
         this.scene = "quarterbreak";
         this.tipTimer = 1.6;
       } else {
-        this.scene = "final";
-        sfx.buzzer();
+        this.finishMatch();
       }
       return;
     }

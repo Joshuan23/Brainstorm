@@ -30,6 +30,28 @@ npm run dev          # open the printed http://localhost:5173 URL
 Sink **three baskets in a row** to catch **fire** — you move faster and almost never miss
 until the other team scores.
 
+## Legends, signature moves & modes
+
+**Legends League** — 12 selectable teams, including six squads of original, trademark-safe
+tribute stars (recognizable by number, nickname, and play style; see the branding note
+above). Every legend glows gold and catches fire a bucket sooner.
+
+**Signature moves** — each legend has a special ability that bends the arcade math:
+
+| Signature | Effect | Examples |
+|---|---|---|
+| **Air Walk / Euro Step** | Dunk from way outside the paint | Air #23, Greek #34, Slim #35 |
+| **Logo Range / Splash** | Ignores distance falloff, shrugs off contests | Logo #44, Chef #30, Mamba #24, Cap #33 |
+| **The Diesel** | Dunks can't be blocked and knock down defenders | Diesel #34, Mailman #32 |
+| **The Glove / Goaltender** | Boosted steal & block range/chance | Glove #20, Stilt #13, King #6, Brow #1 |
+| **Crossover / Fast Break** | Turbo barely drains, extra speed | Answer #3, Zo #2 |
+| **No-Look / Dime Machine** | Passes can't be intercepted | Show #32, Post #12 |
+
+**Modes** — from the team-select screen:
+- **Exhibition** — a single game against your chosen opponent.
+- **Tournament** — a 3-round single-elimination bracket vs. escalating-difficulty teams.
+  Win all three to be crowned champion; lose once and you're eliminated.
+
 ## How it's built
 
 Plain TypeScript + HTML5 Canvas, bundled by [Vite](https://vitejs.dev/). No game engine, no
