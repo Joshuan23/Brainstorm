@@ -235,6 +235,83 @@ const LEGEND_TEAMS: TeamDef[] = [
 
 TEAMS.push(...LEGEND_TEAMS);
 
+// ---------------------------------------------------------------------------
+// PRO LEAGUE — all 30 pro cities as full teams.
+// Real CITY names are used (geographic, not trademarks); team names and player
+// nicknames are ORIGINAL and trademark-safe. Rosters are generated
+// deterministically (a guard, a wing, and a big) so the whole league is
+// playable without encoding any real player's name or likeness. For a private,
+// unpublished build you may rename them in this file — do NOT ship real
+// names/likenesses without an NBA/NBPA license (see README's branding note).
+// ---------------------------------------------------------------------------
+
+// id, city, name, abbr, primary, secondary, accent
+const PRO_CONFIG: [string, string, string, string, string, string, string][] = [
+  ["bos", "Boston", "Shamrocks", "BOS", "#0a7d4f", "#0b1a14", "#f4f0d8"],
+  ["bkn", "Brooklyn", "Blackout", "BKN", "#1a1a1a", "#000000", "#ffffff"],
+  ["nyk", "New York", "Empire", "NYK", "#1d6fb8", "#0c2340", "#f58426"],
+  ["phi", "Philadelphia", "Liberty", "PHI", "#1461b0", "#0b1e33", "#ed506b"],
+  ["tor", "Toronto", "North", "TOR", "#ce1141", "#1a1a1a", "#d0c7bd"],
+  ["chi", "Chicago", "Windy", "CHI", "#ce1141", "#161616", "#eaeaea"],
+  ["cle", "Cleveland", "Lakeside", "CLE", "#7a1734", "#0c1a2a", "#f0b429"],
+  ["det", "Detroit", "Motors", "DET", "#c8102e", "#123a9a", "#ffffff"],
+  ["ind", "Indiana", "Racers", "IND", "#12284b", "#0a1730", "#fdbb30"],
+  ["mil", "Milwaukee", "Antlers", "MIL", "#1c5c37", "#0a2318", "#eee1c6"],
+  ["atl", "Atlanta", "Talons", "ATL", "#e03a3e", "#161616", "#26c6a8"],
+  ["cha", "Charlotte", "Hive", "CHA", "#3a1f8f", "#111024", "#22b7a6"],
+  ["mia", "Miami", "Heatwave", "MIA", "#98002e", "#111111", "#f9a01b"],
+  ["orl", "Orlando", "Wizardry", "ORL", "#0b77c2", "#0a2436", "#c0c7cf"],
+  ["was", "Washington", "Capitols", "WAS", "#0c2c56", "#0a1c38", "#e03a3e"],
+  ["den", "Denver", "Altitude", "DEN", "#0e2240", "#0a1830", "#fec524"],
+  ["min", "Minnesota", "Timber", "MIN", "#0c2340", "#0a1a30", "#63b0e3"],
+  ["okc", "Oklahoma City", "Storm", "OKC", "#0b7ac1", "#0a2740", "#ef6024"],
+  ["por", "Portland", "Ripcity", "POR", "#d43a3a", "#161616", "#dcdcdc"],
+  ["uta", "Utah", "Peaks", "UTA", "#12284b", "#0a1830", "#5aa64a"],
+  ["gsw", "Golden State", "Splash", "GSW", "#1d54a8", "#0c2148", "#ffc72c"],
+  ["lal", "Los Angeles", "Royals", "LAL", "#5a2d81", "#20123a", "#f4c430"],
+  ["lac", "Los Angeles", "Sails", "LAC", "#c8102e", "#0c2148", "#dfe3e8"],
+  ["phx", "Phoenix", "Blaze", "PHX", "#e56020", "#2a1140", "#f5c542"],
+  ["sac", "Sacramento", "Crowns", "SAC", "#5a2d81", "#161616", "#c0c7cf"],
+  ["dal", "Dallas", "Lonestar", "DAL", "#12649c", "#0a1f33", "#b4bcc4"],
+  ["hou", "Houston", "Launch", "HOU", "#ce1141", "#111111", "#c4ced4"],
+  ["mem", "Memphis", "Grind", "MEM", "#5d76a9", "#12203a", "#f5b112"],
+  ["nop", "New Orleans", "Brass", "NOP", "#0c2340", "#0a1830", "#b4975a"],
+  ["sas", "San Antonio", "Silver", "SAS", "#8a8f96", "#161616", "#e6e9ec"],
+];
+
+const PRO_NICKS = [
+  "Jet", "Sniper", "Motor", "Clutch", "Flash", "Bruiser", "Handles", "Wingman",
+  "Cash", "Sky", "Tank", "Bolt", "Ice", "Prime", "Zone", "Dagger", "Hops",
+  "Vault", "Chain", "Pulse", "Blur", "Deuce", "Cobra", "Torch",
+];
+
+function proRoster(ti: number): PlayerDef[] {
+  const roles = ["guard", "wing", "big"] as const;
+  const round2 = (x: number) => Math.min(0.98, Math.round(x * 100) / 100);
+  return roles.map((role, r) => {
+    const v = ((ti * 7 + r * 13) % 10) / 10; // deterministic 0..0.9 variation
+    const nick = PRO_NICKS[(ti * 3 + r) % PRO_NICKS.length];
+    const num =
+      role === "guard" ? 1 + ((ti + r) % 9)
+        : role === "wing" ? 20 + ((ti * 2 + r) % 15)
+          : 40 + ((ti + r) % 15);
+    const s =
+      role === "guard"
+        ? { speed: 0.86 + v * 0.1, shooting: 0.8 + v * 0.16, dunk: 0.45 + v * 0.18, steal: 0.82 + v * 0.14 }
+        : role === "wing"
+          ? { speed: 0.78 + v * 0.12, shooting: 0.74 + v * 0.2, dunk: 0.72 + v * 0.22, steal: 0.68 + v * 0.16 }
+          : { speed: 0.55 + v * 0.14, shooting: 0.5 + v * 0.28, dunk: 0.9 + v * 0.09, steal: 0.55 + v * 0.14 };
+    return {
+      name: nick, num,
+      speed: round2(s.speed), shooting: round2(s.shooting), dunk: round2(s.dunk), steal: round2(s.steal),
+    };
+  });
+}
+
+PRO_CONFIG.forEach(([id, city, name, abbr, primary, secondary, accent], ti) => {
+  TEAMS.push({ id, city, name, abbr, primary, secondary, accent, roster: proRoster(ti) });
+});
+
 export function teamById(id: string): TeamDef {
   return TEAMS.find((t) => t.id === id) ?? TEAMS[0];
 }

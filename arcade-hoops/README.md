@@ -32,9 +32,17 @@ until the other team scores.
 
 ## Legends, signature moves & modes
 
-**Legends League** — 12 selectable teams, including six squads of original, trademark-safe
-tribute stars (recognizable by number, nickname, and play style; see the branding note
-above). Every legend glows gold and catches fire a bucket sooner.
+**42 teams total** — a full **Pro League** of all 30 pro cities (real cities, original team
+names and player nicknames, deterministically generated 3-man rosters) plus the **Legends
+League** of six squads of original, trademark-safe tribute stars (recognizable by number,
+nickname, and play style; see the branding note above). Every *legend* glows gold, carries a
+signature move, and catches fire a bucket sooner; pro-league players are solid all-rounders.
+
+> **Why not the real NBA?** Real player names/likenesses and team names/logos are licensed
+> exclusively (NBA + NBPA → Take-Two/2K). Shipping them gets an app rejected and pulled. The
+> Pro League uses real *cities* (geographic, not trademarks) with original teams/players so
+> the whole league is playable **and** publishable. For a private, unpublished build you can
+> rename them in `src/game/teams.ts`.
 
 **Signature moves** — each legend has a special ability that bends the arcade math:
 
