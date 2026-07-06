@@ -6,6 +6,7 @@
 import { optimize, OptimizeInput } from "../lib/generator";
 import { PLATFORMS, PlatformId } from "../lib/platforms";
 import { TOOLS } from "../lib/tools";
+import { auditListing } from "../lib/audit";
 
 let failures = 0;
 function check(name: string, cond: boolean, detail = "") {
@@ -48,8 +49,35 @@ check("every tool has title + faq", TOOLS.every((t) => t.title && t.faq.length >
 check("every tool has a working sample", TOOLS.every((t) => optimize({ platform: t.platform, product: t.sampleProduct, keyword: t.sampleKeyword }).title.length > 0));
 console.log("");
 
+// Audit engine: a weak listing should score low with issues; a strong one high.
+console.log("• Audit engine");
+const weak = auditListing({
+  platform: "etsy",
+  title: "CANDLE",
+  tags: ["candle"],
+  description: "",
+});
+check("weak listing scores low", weak.beforeScore < 60, `${weak.beforeScore}`);
+check("weak listing surfaces issues", weak.issues.length >= 3, `${weak.issues.length} issues`);
+check("weak listing has an improved rewrite", weak.improved.title.length > "CANDLE".length);
+check("improved beats original", weak.improved.score.total >= weak.beforeScore);
+
+const strong = auditListing({
+  platform: "etsy",
+  title: "Soy Candle | Lavender Scented | Housewarming Gift for Her | 8oz Amber Jar",
+  tags: ["soy candle", "lavender candle", "housewarming gift", "candle for her", "scented candle", "amber jar candle", "gift for mom", "relaxation candle", "aromatherapy candle", "natural soy candle", "hand poured candle", "candle gift set", "cozy home decor"],
+  description: "This soy candle is hand-poured with lavender essential oils in an 8oz amber jar — a calming housewarming gift for her that burns clean for 40+ hours. Made in small batches.",
+});
+check("strong listing scores high", strong.beforeScore >= 70, `${strong.beforeScore}`);
+check("issues sorted by severity", strong.issues.every((iss, i, a) => i === 0 || rank(a[i - 1].severity) >= rank(iss.severity)));
+console.log("");
+
 if (failures > 0) {
   console.error(`FAILED: ${failures} check(s) failed.`);
   process.exit(1);
 }
 console.log("All engine checks passed.");
+
+function rank(s: "high" | "medium" | "low"): number {
+  return s === "high" ? 3 : s === "medium" ? 2 : 1;
+}

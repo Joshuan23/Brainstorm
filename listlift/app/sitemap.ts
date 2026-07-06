@@ -6,6 +6,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   const routes: MetadataRoute.Sitemap = [
     { url: `${SITE.url}/`, lastModified: now, priority: 1 },
+    { url: `${SITE.url}/audit`, lastModified: now, priority: 0.9 },
     { url: `${SITE.url}/tools`, lastModified: now, priority: 0.8 },
     { url: `${SITE.url}/app`, lastModified: now, priority: 0.5 },
   ];

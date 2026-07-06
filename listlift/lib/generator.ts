@@ -284,7 +284,15 @@ export function optimize(input: OptimizeInput): Optimized {
   ).filter(Boolean);
 
   const tags = buildTags(head, pool, platform);
-  const title = buildTitle(head, [...attrPool, ...detected, ...productWords], platform);
+  // Seller-supplied differentiators first; then a curated buyer-intent tail so a
+  // thin input still yields a title that uses the marketplace's length (buildTitle
+  // stops before the target and skips words already present, so it won't over-stuff).
+  const curatedTail = [
+    ...MODIFIERS.quality.slice(0, 1),
+    ...MODIFIERS.format.slice(0, 2),
+    ...MODIFIERS.audience.slice(0, 1),
+  ];
+  const title = buildTitle(head, [...attrPool, ...detected, ...productWords, ...curatedTail], platform);
   const { body, meta } = buildDescription(input, head, tags);
   const score = scoreListing(title, head, tags, meta, platform);
 

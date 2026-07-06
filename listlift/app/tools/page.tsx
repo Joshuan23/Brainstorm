@@ -23,6 +23,19 @@ export default function ToolsIndex() {
         free, instant, and no account required.
       </p>
 
+      <Link
+        href="/audit"
+        className="mt-6 flex items-center justify-between rounded-2xl border border-brand/40 bg-brand/5 p-5 transition hover:border-brand"
+      >
+        <span>
+          <span className="font-semibold text-white">Already have listings? Audit one free →</span>
+          <span className="mt-1 block text-sm text-muted">
+            Paste a live listing and get a score, the exact problems, and an optimized rewrite.
+          </span>
+        </span>
+        <span className="pill hidden text-brand sm:inline-flex">New</span>
+      </Link>
+
       {byPlatform.map(({ platform, tools }) => (
         <section key={platform.id} className="mt-10">
           <h2 className="mb-4 text-xl font-semibold text-white">{platform.label}</h2>

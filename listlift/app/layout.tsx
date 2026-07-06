@@ -31,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               List<span className="h-gradient">Lift</span>
             </Link>
             <nav className="flex items-center gap-5 text-sm text-muted">
+              <Link href="/audit" className="hover:text-slate-100">Free audit</Link>
               <Link href="/tools" className="hover:text-slate-100">Free tools</Link>
               <Link href="/#pricing" className="hover:text-slate-100">Pricing</Link>
               <Link href="/app" className="btn btn-primary px-4 py-2">Open app</Link>

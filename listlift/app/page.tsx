@@ -55,7 +55,7 @@ export default function Home() {
         </p>
         <div className="mt-7 flex items-center justify-center gap-3">
           <Link href="#try" className="btn btn-primary">Try it free</Link>
-          <Link href="/tools" className="btn btn-ghost">Browse free tools</Link>
+          <Link href="/audit" className="btn btn-ghost">Audit my listing →</Link>
         </div>
       </section>
 
