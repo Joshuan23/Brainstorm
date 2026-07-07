@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
 /**
- * Lightweight paywall entitlement: after a Lemon Squeezy license key is
+ * Lightweight paywall entitlement: after a Gumroad license key is
  * activated (or a demo pass is granted), we set a signed, expiring cookie.
  * No user database needed. Pro cookies carry the license key and are
  * re-validated roughly daily, so cancellations revoke access on their own.
@@ -17,7 +17,7 @@ function secret(): string {
 export interface Entitlement {
   plan: "pro" | "demo-pro";
   exp: number; // unix seconds
-  /** Lemon Squeezy license key backing a "pro" plan (absent for demo passes) */
+  /** Gumroad license key backing a "pro" plan (absent for demo passes) */
   key?: string;
   /** unix seconds of the last successful license re-validation */
   checkedAt?: number;

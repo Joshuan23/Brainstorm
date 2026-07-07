@@ -5,8 +5,8 @@
 through free programmatic-SEO tool pages that rank on high-intent queries.
 
 **This is a *new* direction** — deliberately not another forex/trading product (PipSignal,
-the prop-trader analytics plan). It reuses the payment plumbing we already built (Lemon
-Squeezy license-key paywall) but attacks a large, proven, non-regulated market.
+the prop-trader analytics plan). It reuses the same license-key paywall pattern (now on
+Gumroad, the easiest merchant of record) but attacks a large, proven, non-regulated market.
 
 ## Who owns what ("run by me")
 
@@ -14,7 +14,7 @@ The honest split that makes this real:
 
 | You (the human) — one-time, ~1 hour | Me (the AI) — ongoing operation |
 |---|---|
-| Register the Lemon Squeezy account (merchant of record) | Build & maintain the product and engine |
+| Register the Gumroad account (merchant of record) | Build & maintain the product and engine |
 | Point a domain at Vercel, set 4 env vars | Generate new SEO tool pages (more funnels) on a schedule |
 | Approve the first community launch posts | Draft launch/outreach copy, changelog, support replies |
 | Be the legal entity / receive payouts | Monitor trial→paid, iterate pricing & copy |
@@ -67,7 +67,7 @@ not a crippled trial). Revisit an annual plan and a $39 "agency/bulk-heavy" tier
 
 | When | Milestone | MRR |
 |---|---|---|
-| Week 1 | Deployed, Lemon Squeezy live, sitemap submitted | $0 |
+| Week 1 | Deployed, Gumroad live, sitemap submitted | $0 |
 | Week 4 | First 25 paying (manual community outreach) | ~$475 |
 | Month 3 | 120 subscribers, 30+ SEO pages indexed | ~$2,280 |
 | Month 6 | 350 subscribers, SEO compounding | ~$6,650 |
@@ -88,5 +88,5 @@ actually index. Both are checked monthly (see `LAUNCH.md`).
 
 ## Startup cost
 
-Effectively $0 to launch: Vercel free/hobby tier, Lemon Squeezy takes a cut only on sales,
+Effectively $0 to launch: Vercel free/hobby tier, Gumroad takes a cut only on sales,
 domain ~$12/yr. The business funds itself from the first subscriber.

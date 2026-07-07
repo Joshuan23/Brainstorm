@@ -4,7 +4,7 @@ import { BulkOptimizer } from "@/components/BulkOptimizer";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import { LicenseForm } from "@/components/LicenseForm";
 import { currentEntitlement } from "@/lib/entitlement";
-import { paymentsConfigured } from "@/lib/lemonsqueezy";
+import { paymentsConfigured } from "@/lib/payments";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {

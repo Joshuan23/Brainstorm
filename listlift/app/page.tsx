@@ -19,7 +19,7 @@ const FAQ = [
   },
   {
     q: "Can I cancel anytime?",
-    a: "Yes. Billing runs through Lemon Squeezy (the merchant of record, so they handle VAT/sales tax). Cancel from the receipt link and your Pro access ends at the period's end automatically.",
+    a: "Yes. Billing runs through Gumroad (the merchant of record, so they handle VAT/sales tax). Cancel from your Gumroad receipt and your Pro access ends at the period's end automatically.",
   },
 ];
 

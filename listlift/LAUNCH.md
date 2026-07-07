@@ -14,11 +14,13 @@ need the human (accounts, money, domain); everything else I can do or draft.
 
 ## 2. Payments (day 1)
 
-- [ ] **[you]** Create a Lemon Squeezy store (merchant of record — handles VAT/sales tax).
-- [ ] **[you]** Create a **$19/mo subscription product** with *"Generate license keys"* on.
-- [ ] Set env vars: `LEMONSQUEEZY_CHECKOUT_URL`, `LEMONSQUEEZY_STORE_ID`, `LEMONSQUEEZY_PRODUCT_ID`.
-- [ ] Do one real test purchase → confirm the license key activates Pro at `/app` and
-      bulk mode unlocks. Refund the test.
+- [ ] **[you]** Create a Gumroad account (merchant of record — handles VAT/sales tax).
+- [ ] **[you]** Create a **$19/mo membership product** with *"Generate a unique license
+      key per sale"* enabled.
+- [ ] Set env vars in Vercel: `GUMROAD_CHECKOUT_URL`, `GUMROAD_PRODUCT_ID` (or
+      `GUMROAD_PRODUCT_PERMALINK`), `ENTITLEMENT_SECRET`, `NEXT_PUBLIC_SITE_URL`. Redeploy.
+- [ ] Do one test purchase → confirm the license key activates Pro at `/app` and
+      bulk mode unlocks.
 
 ## 3. Get indexed (week 1)
 

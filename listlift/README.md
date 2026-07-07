@@ -19,7 +19,7 @@ Built with Next.js 14 (App Router, TypeScript), no database required.
 | Marketplace rules | `lib/platforms.ts` | Real Etsy / Shopify / Amazon limits (title length, tag count, tag char cap) so output is paste-ready per platform. |
 | Keyword vocab | `lib/keywords.ts` | Curated buyer-intent modifiers (style / occasion / audience / quality) + text utilities that mirror how shoppers search. |
 | SEO tool pages | `lib/tools.ts`, `app/tools/[slug]` | 19 statically-generated free-tool pages ("etsy title generator", "etsy tag generator for jewelry", …) with unique metadata, FAQ + JSON-LD, and a CTA. This is the **programmatic-SEO acquisition engine**. |
-| Paywall | `app/api/checkout`, `app/api/license/activate`, `lib/lemonsqueezy.ts`, `lib/entitlement.ts` | Lemon Squeezy hosted checkout (merchant of record — handles global sales tax/VAT). Purchase emails a license key; activating it sets an HMAC-signed Pro cookie, re-validated ~daily so cancellations revoke access. No config → 24h demo pass. |
+| Paywall | `app/api/checkout`, `app/api/license/activate`, `lib/payments.ts`, `lib/entitlement.ts` | Gumroad hosted checkout (merchant of record — handles global sales tax/VAT). Purchase emails a license key; activating it verifies against Gumroad's License API and sets an HMAC-signed Pro cookie, re-verified ~daily so refunds/cancellations revoke access. No config → 24h demo pass. Provider is isolated to `lib/payments.ts`. |
 | Free vs Pro | `app/api/generate`, `app/api/generate/bulk` | **Free:** unlimited single-listing optimization (keeps the SEO pages genuinely useful). **Pro ($19/mo):** bulk mode — optimize a whole shop and export a CSV. |
 | UI | `app/`, `components/` | Landing (hero + pricing + FAQ + JSON-LD), the live optimizer, the Pro bulk optimizer, and the free-tool pages. |
 
@@ -34,11 +34,11 @@ npm run build          # production build (prerenders the 19 SEO pages)
 
 Copy `.env.example` to `.env.local` to take real payments:
 
-1. Create a Lemon Squeezy store (they are the merchant of record) and a **$19/mo
-   subscription product** with *"Generate license keys"* enabled.
-2. Set `LEMONSQUEEZY_CHECKOUT_URL` (the product's checkout link), optionally
-   `LEMONSQUEEZY_STORE_ID`/`LEMONSQUEEZY_PRODUCT_ID`, a long random
-   `ENTITLEMENT_SECRET`, and `NEXT_PUBLIC_SITE_URL`.
+1. Create a Gumroad **$19/mo membership product** (they are the merchant of record)
+   with *"Generate a unique license key per sale"* enabled.
+2. Set `GUMROAD_CHECKOUT_URL` (the product's share link), `GUMROAD_PRODUCT_ID`
+   (or `GUMROAD_PRODUCT_PERMALINK`), a long random `ENTITLEMENT_SECRET`, and
+   `NEXT_PUBLIC_SITE_URL`.
 3. Deploy (Vercel works out of the box). Purchase → license key by email → buyer
    activates it at `/app` → signed Pro cookie → bulk mode unlocks.
 

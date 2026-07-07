@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
-import { paymentsConfigured } from "@/lib/lemonsqueezy";
+import { paymentsConfigured } from "@/lib/payments";
 import { PRO_COOKIE, signEntitlement } from "@/lib/entitlement";
 
 /**
  * POST /api/checkout — start a Pro purchase.
  *
- * With LEMONSQUEEZY_CHECKOUT_URL configured, sends the buyer to the hosted
- * Lemon Squeezy checkout; the purchase emails them a license key which they
- * activate at /api/license/activate. Without it (local/dev), grants a
- * clearly-labelled "demo-pro" pass so the paywall flow can be exercised.
+ * With GUMROAD_CHECKOUT_URL configured, sends the buyer to the hosted Gumroad
+ * checkout; the purchase emails them a license key which they activate at
+ * /api/license/activate. Without it (local/dev), grants a clearly-labelled
+ * "demo-pro" pass so the paywall flow can be exercised.
  */
 export async function POST() {
   if (paymentsConfigured()) {
-    return NextResponse.json({ url: process.env.LEMONSQUEEZY_CHECKOUT_URL, mode: "lemonsqueezy" });
+    return NextResponse.json({ url: process.env.GUMROAD_CHECKOUT_URL, mode: "gumroad" });
   }
 
   const token = signEntitlement({

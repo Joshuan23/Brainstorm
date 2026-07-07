@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { activateLicense } from "@/lib/lemonsqueezy";
+import { activateLicense } from "@/lib/payments";
 import { PRO_COOKIE, signEntitlement } from "@/lib/entitlement";
 
 /**
- * POST /api/license/activate { key } — turn a Lemon Squeezy license key
- * (emailed on purchase) into a Pro entitlement cookie. The key is stored in
- * the signed cookie and re-validated about once a day, so a cancelled
+ * POST /api/license/activate { key } — turn a Gumroad license key (emailed on
+ * purchase) into a Pro entitlement cookie. The key is stored in the signed
+ * cookie and re-verified about once a day, so a refunded or lapsed
  * subscription loses access automatically.
  */
 export async function POST(req: NextRequest) {
