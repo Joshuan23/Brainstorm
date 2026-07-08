@@ -1,0 +1,14 @@
+Client,Project,Status,Invoiced ($),Paid ($),Balance ($),Next Action
+Example Co,Brand logo + guidelines,In progress,2160,0,=D2-E2,Send 50% deposit invoice
+Riverside Dental,5-page marketing website,Invoiced,3120,1560,=D3-E3,Follow up on remaining balance
+Nora Kim (personal brand),Monthly social management - July,Paid,750,750,=D4-E4,None - send August scope
+Blume Coffee Co,Product photography day,Not started,0,0,=D5-E5,Confirm shoot date
+,,,0,0,=D6-E6,
+,,,0,0,=D7-E7,
+,,,0,0,=D8-E8,
+,,,0,0,=D9-E9,
+,,,0,0,=D10-E10,
+,,,0,0,=D11-E11,
+,,,0,0,=D12-E12,
+,,,0,0,=D13-E13,
+,TOTAL,,=SUM(D2:D13),=SUM(E2:E13),=SUM(F2:F13),

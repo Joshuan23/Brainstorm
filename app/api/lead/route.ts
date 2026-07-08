@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
+import { persistLead } from "@/lib/leads";
 
 /**
  * POST /api/lead — capture a restoration lead (Venture A).
  *
  * Monetization is intentionally behind a config flag: leads are only forwarded
- * when LEAD_WEBHOOK_URL is set (a buyer/partner endpoint). Until then, leads are
- * logged so pages can rank and capture while the owner finalizes a lead buyer.
- *
- * No database in this repo yet; this is an append-only forward/log. Upgrade path:
- * persist to a KV/store and add per-buyer routing + delivery confirmation.
+ * to a buyer when LEADS_WEBHOOK_URL/LEAD_WEBHOOK_URL is set. Regardless of that,
+ * every valid lead is durably captured via `persistLead` (see lib/leads.ts) so a
+ * missing/failed buyer integration never loses a lead — see that module for the
+ * store/log fallback chain and the Vercel upgrade path.
  */
 
 interface LeadPayload {
@@ -60,23 +60,15 @@ export async function POST(req: Request) {
     receivedAt: new Date().toISOString(),
   };
 
-  const webhook = process.env.LEAD_WEBHOOK_URL;
-  if (webhook) {
-    try {
-      const res = await fetch(webhook, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(lead),
-        signal: AbortSignal.timeout(8000),
-      });
-      if (!res.ok) throw new Error(`buyer endpoint ${res.status}`);
-    } catch (err) {
-      // Don't lose the lead: log it so it can be recovered/retried.
-      console.error("[lead] forward failed, logging instead", err, lead);
-    }
-  } else {
-    // No buyer configured yet — log so the owner can see captured demand.
-    console.log("[lead] captured (no buyer configured)", lead);
+  // persistLead always logs + best-effort stores locally, and forwards to a
+  // buyer when configured. A forward failure never drops the lead.
+  const { stored, forwarded } = await persistLead(lead);
+  if (!stored && !forwarded) {
+    // Both the durable store and the buyer forward failed — this only
+    // happens if the local log fallback itself couldn't write (e.g. a
+    // fully read-only FS with no KV/webhook configured). The lead is still
+    // in the console/log drain, but flag it loudly for follow-up.
+    console.error("[lead] WARNING: lead only captured via console log", lead);
   }
 
   return NextResponse.json({ ok: true });

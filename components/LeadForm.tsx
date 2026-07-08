@@ -1,6 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+
+/** Only ever redirect to a same-origin, known-safe path — never trust ?next= blindly. */
+const SAFE_NEXT_PATHS = new Set(["/restoration/thanks"]);
 
 /**
  * Lead-capture form for Venture A restoration pages.
@@ -30,9 +34,17 @@ export function LeadForm({ cause, city }: { cause: string; city: string }) {
       });
       const json = await res.json();
       if (res.ok && json.ok) {
+        form.reset();
+        // Optional opt-in redirect via ?next=/restoration/thanks — never
+        // trust an arbitrary URL, only an explicit allow-listed path, and
+        // fall back to the inline success message otherwise.
+        const next = new URLSearchParams(window.location.search).get("next");
+        if (next && SAFE_NEXT_PATHS.has(next)) {
+          window.location.href = next;
+          return;
+        }
         setStatus("ok");
         setMessage("Thanks — we're matching you with a local restoration pro. Keep your phone handy.");
-        form.reset();
       } else {
         setStatus("error");
         setMessage(json.error ?? "Something went wrong. Please try again.");
@@ -48,6 +60,9 @@ export function LeadForm({ cause, city }: { cause: string; city: string }) {
       <div className="lead-card" role="status">
         <strong>Request received.</strong>
         <p>{message}</p>
+        <p className="lead-fine">
+          <Link href="/restoration/thanks">What happens next →</Link>
+        </p>
       </div>
     );
   }

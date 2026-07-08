@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { abs } from "@/lib/site";
-import { CAUSES, CITIES } from "@/lib/restoration-data";
+import { CAUSES, CITIES, STATES } from "@/lib/restoration-data";
 
 export const metadata: Metadata = {
   title: "Emergency Water Damage & Restoration Help by City | Restoration Match",
@@ -31,6 +31,21 @@ export default function RestorationHub() {
               <h3>{c.name}</h3>
               <p>{c.intro}</p>
               <Link href={`/restoration/${c.slug}/${CITIES[0].slug}`}>See {c.name.toLowerCase()} help →</Link>
+            </li>
+          ))}
+        </ul>
+
+        <h2>Browse by state</h2>
+        <p>
+          Every state below has its own hub page listing all {CAUSES.length} emergencies across
+          every city we cover there — the fastest way to find your city.
+        </p>
+        <ul className="cols">
+          {STATES.map((state) => (
+            <li key={state.slug}>
+              <Link href={`/restoration/state/${state.slug}`}>
+                {state.name} ({state.cities.length} {state.cities.length === 1 ? "city" : "cities"})
+              </Link>
             </li>
           ))}
         </ul>

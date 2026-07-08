@@ -37,11 +37,11 @@ export const PRODUCTS: Product[] = [
     intro:
       "A focused, single-purpose Google Sheets + Excel system that turns a project scope into a defensible price and shows your true profit per hour — plus a lightweight client tracker so nothing slips. Built for solo service providers who are tired of pricing by gut feel.",
     includes: [
-      "Project pricing calculator: rate, hours, expenses, and target margin → recommended price",
+      "Project pricing calculator: rate, hours, expenses, and target margin → recommended price (live formulas, 3 worked examples)",
       "Real hourly-profit view so you can spot unprofitable clients at a glance",
-      "Client tracker: status, deliverables, invoiced vs. paid, next action",
-      "Works in Google Sheets and Excel — no login, no subscription",
-      "Setup guide + example filled-in project",
+      "Client tracker: status dropdown, invoiced vs. paid, live balance formula, next action, running totals",
+      "Master .xlsx (opens in Excel, Numbers, LibreOffice, and imports natively into Google Sheets) plus a per-tab CSV set for Sheets",
+      "SETUP.md with full formula key, Google Sheets import steps, and single-user license terms",
     ],
     faqs: [
       {
