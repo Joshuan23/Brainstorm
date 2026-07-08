@@ -1,0 +1,10 @@
+Package Tier,Clients on This Tier,Monthly Hours / Client,Target Hourly Rate ($),Total Monthly Overhead ($),Target Profit Margin (%),Labor Cost / Client ($),Overhead / Client ($),Base Cost / Client ($),Recommended Monthly Package Price ($),Effective Hourly Rate ($),Profit / Client ($),Total Monthly Profit — This Tier ($)
+"Starter (up to 50 tx/mo, monthly bookkeeping)",8,3,50,400,0.3,=C2*D2,"=IF(B2=0,0,E2/B2)",=G2+H2,"=IF(F2>=1,""margin must be <100%"",I2/(1-F2))","=IF(OR(C2=0,F2>=1),0,I2/(1-F2)/C2)","=IF(F2>=1,0,I2/(1-F2)-I2)",=L2*B2
+"Growth (up to 150 tx/mo, monthly bookkeeping + reconciliations)",5,6,55,400,0.32,=C3*D3,"=IF(B3=0,0,E3/B3)",=G3+H3,"=IF(F3>=1,""margin must be <100%"",I3/(1-F3))","=IF(OR(C3=0,F3>=1),0,I3/(1-F3)/C3)","=IF(F3>=1,0,I3/(1-F3)-I3)",=L3*B3
+Pro (payroll + catch-up cleanup add-ons),3,10,60,400,0.35,=C4*D4,"=IF(B4=0,0,E4/B4)",=G4+H4,"=IF(F4>=1,""margin must be <100%"",I4/(1-F4))","=IF(OR(C4=0,F4>=1),0,I4/(1-F4)/C4)","=IF(F4>=1,0,I4/(1-F4)-I4)",=L4*B4
+,,,,,,=C5*D5,"=IF(B5=0,0,E5/B5)",=G5+H5,"=IF(F5>=1,""margin must be <100%"",I5/(1-F5))","=IF(OR(C5=0,F5>=1),0,I5/(1-F5)/C5)","=IF(F5>=1,0,I5/(1-F5)-I5)",=L5*B5
+,,,,,,=C6*D6,"=IF(B6=0,0,E6/B6)",=G6+H6,"=IF(F6>=1,""margin must be <100%"",I6/(1-F6))","=IF(OR(C6=0,F6>=1),0,I6/(1-F6)/C6)","=IF(F6>=1,0,I6/(1-F6)-I6)",=L6*B6
+,,,,,,=C7*D7,"=IF(B7=0,0,E7/B7)",=G7+H7,"=IF(F7>=1,""margin must be <100%"",I7/(1-F7))","=IF(OR(C7=0,F7>=1),0,I7/(1-F7)/C7)","=IF(F7>=1,0,I7/(1-F7)-I7)",=L7*B7
+,,,,,,=C8*D8,"=IF(B8=0,0,E8/B8)",=G8+H8,"=IF(F8>=1,""margin must be <100%"",I8/(1-F8))","=IF(OR(C8=0,F8>=1),0,I8/(1-F8)/C8)","=IF(F8>=1,0,I8/(1-F8)-I8)",=L8*B8
+,,,,,,=C9*D9,"=IF(B9=0,0,E9/B9)",=G9+H9,"=IF(F9>=1,""margin must be <100%"",I9/(1-F9))","=IF(OR(C9=0,F9>=1),0,I9/(1-F9)/C9)","=IF(F9>=1,0,I9/(1-F9)-I9)",=L9*B9
+,,,,,,=C10*D10,"=IF(B10=0,0,E10/B10)",=G10+H10,"=IF(F10>=1,""margin must be <100%"",I10/(1-F10))","=IF(OR(C10=0,F10>=1),0,I10/(1-F10)/C10)","=IF(F10>=1,0,I10/(1-F10)-I10)",=L10*B10

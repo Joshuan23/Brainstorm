@@ -1,0 +1,11 @@
+Project Name,Estimated Hours,Target Hourly Rate ($),Direct Expenses ($),Target Profit Margin (%),Labor Cost ($),Base Cost ($),Recommended Price ($),Profit ($),Real Profit / Hour ($)
+Brand logo + guidelines,20,75,120,0.25,=B2*C2,=F2+D2,"=IF(E2>=1,""margin must be <100%"",G2/(1-E2))",=H2-G2,"=IF(B2=0,0,I2/B2)"
+5-page marketing website,35,65,250,0.30,=B3*C3,=F3+D3,"=IF(E3>=1,""margin must be <100%"",G3/(1-E3))",=H3-G3,"=IF(B3=0,0,I3/B3)"
+Monthly social media management (retainer),15,50,0,0.35,=B4*C4,=F4+D4,"=IF(E4>=1,""margin must be <100%"",G4/(1-E4))",=H4-G4,"=IF(B4=0,0,I4/B4)"
+,,,,,=B5*C5,=F5+D5,"=IF(E5>=1,""margin must be <100%"",IF(B5=0,0,G5/(1-E5)))","=IF(H5="""",0,H5-G5)","=IF(B5=0,0,I5/B5)"
+,,,,,=B6*C6,=F6+D6,"=IF(E6>=1,""margin must be <100%"",IF(B6=0,0,G6/(1-E6)))","=IF(H6="""",0,H6-G6)","=IF(B6=0,0,I6/B6)"
+,,,,,=B7*C7,=F7+D7,"=IF(E7>=1,""margin must be <100%"",IF(B7=0,0,G7/(1-E7)))","=IF(H7="""",0,H7-G7)","=IF(B7=0,0,I7/B7)"
+,,,,,=B8*C8,=F8+D8,"=IF(E8>=1,""margin must be <100%"",IF(B8=0,0,G8/(1-E8)))","=IF(H8="""",0,H8-G8)","=IF(B8=0,0,I8/B8)"
+,,,,,=B9*C9,=F9+D9,"=IF(E9>=1,""margin must be <100%"",IF(B9=0,0,G9/(1-E9)))","=IF(H9="""",0,H9-G9)","=IF(B9=0,0,I9/B9)"
+,,,,,=B10*C10,=F10+D10,"=IF(E10>=1,""margin must be <100%"",IF(B10=0,0,G10/(1-E10)))","=IF(H10="""",0,H10-G10)","=IF(B10=0,0,I10/B10)"
+,,,,,=B11*C11,=F11+D11,"=IF(E11>=1,""margin must be <100%"",IF(B11=0,0,G11/(1-E11)))","=IF(H11="""",0,H11-G11)","=IF(B11=0,0,I11/B11)"
