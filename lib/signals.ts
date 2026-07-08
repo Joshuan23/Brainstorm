@@ -1,7 +1,7 @@
 import { bollinger, closeAtr, ema, macd, rsi } from "./indicators";
-import { PairDef } from "./pairs";
+import { CoinDef } from "./coins";
 
-export type Direction = "BUY" | "SELL" | "NEUTRAL";
+export type Direction = "LONG" | "SHORT" | "WAIT";
 
 export interface SignalReason {
   indicator: string;
@@ -11,7 +11,7 @@ export interface SignalReason {
 }
 
 export interface Signal {
-  pairId: string;
+  coinId: string;
   label: string;
   direction: Direction;
   /** confluence score, -100..100 */
@@ -22,8 +22,8 @@ export interface Signal {
   stopLoss: number | null;
   takeProfit: number | null;
   riskRewardRatio: number;
-  /** stop distance in pips */
-  stopPips: number | null;
+  /** stop distance as a percentage of entry price */
+  stopPct: number | null;
   reasons: SignalReason[];
   asOf: string;
   price: number;
@@ -31,7 +31,7 @@ export interface Signal {
   dataSource: "live" | "demo";
 }
 
-export const BUY_THRESHOLD = 40;
+export const SIGNAL_THRESHOLD = 40;
 export const STOP_ATR_MULT = 1.5;
 export const TARGET_ATR_MULT = 2.25; // fixed 1.5R target
 
@@ -75,7 +75,7 @@ export function evaluate(closes: number[], index: number): EngineState {
   const atr = atrArr[i];
 
   if ([e20, e50, r, h, hPrev, pb, atr].some((v) => v === undefined || Number.isNaN(v))) {
-    return { direction: "NEUTRAL", score: 0, reasons: [], atr: Number.isNaN(atr) ? 0 : atr };
+    return { direction: "WAIT", score: 0, reasons: [], atr: Number.isNaN(atr) ? 0 : atr };
   }
 
   // 1) Trend: EMA20 vs EMA50 (±25)
@@ -149,12 +149,13 @@ export function evaluate(closes: number[], index: number): EngineState {
   reasons.push({ indicator: "Bollinger %B (20,2)", detail: bbDetail, points: bbPts });
 
   score = Math.max(-100, Math.min(100, score));
-  const direction: Direction = score >= BUY_THRESHOLD ? "BUY" : score <= -BUY_THRESHOLD ? "SELL" : "NEUTRAL";
+  const direction: Direction =
+    score >= SIGNAL_THRESHOLD ? "LONG" : score <= -SIGNAL_THRESHOLD ? "SHORT" : "WAIT";
   return { direction, score, reasons, atr };
 }
 
 export function buildSignal(
-  pair: PairDef,
+  coin: CoinDef,
   dates: string[],
   closes: number[],
   source: "live" | "demo"
@@ -166,17 +167,17 @@ export function buildSignal(
 
   let stopLoss: number | null = null;
   let takeProfit: number | null = null;
-  let stopPips: number | null = null;
-  if (state.direction !== "NEUTRAL" && state.atr > 0) {
-    const sign = state.direction === "BUY" ? 1 : -1;
+  let stopPct: number | null = null;
+  if (state.direction !== "WAIT" && state.atr > 0) {
+    const sign = state.direction === "LONG" ? 1 : -1;
     stopLoss = price - sign * STOP_ATR_MULT * state.atr;
     takeProfit = price + sign * TARGET_ATR_MULT * state.atr;
-    stopPips = (STOP_ATR_MULT * state.atr) / pair.pip;
+    stopPct = price === 0 ? null : ((STOP_ATR_MULT * state.atr) / price) * 100;
   }
 
   return {
-    pairId: pair.id,
-    label: pair.label,
+    coinId: coin.id,
+    label: coin.label,
     direction: state.direction,
     score: state.score,
     confidence: Math.abs(state.score),
@@ -184,7 +185,7 @@ export function buildSignal(
     stopLoss,
     takeProfit,
     riskRewardRatio: TARGET_ATR_MULT / STOP_ATR_MULT,
-    stopPips,
+    stopPct,
     reasons: state.reasons,
     asOf: dates[i],
     price,

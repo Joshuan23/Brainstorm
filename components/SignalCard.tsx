@@ -3,7 +3,7 @@
 import { Sparkline } from "./Sparkline";
 import type { BacktestStats } from "@/lib/backtest";
 import type { Signal } from "@/lib/signals";
-import { getPair } from "@/lib/pairs";
+import { getCoin } from "@/lib/coins";
 
 interface Props {
   signal: Signal;
@@ -11,27 +11,32 @@ interface Props {
   spark: { dates: string[]; closes: number[] };
 }
 
-function fmt(v: number, digits: number) {
-  return v.toFixed(digits);
+/** USD price with thousands separators and the coin's display precision. */
+export function fmtPrice(v: number, digits: number) {
+  return v.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 }
 
 export function SignalCard({ signal, backtest, spark }: Props) {
-  const pair = getPair(signal.pairId);
-  const digits = pair?.digits ?? 5;
+  const coin = getCoin(signal.coinId);
+  const digits = coin?.digits ?? 2;
   const s = signal;
 
   const badgeClass =
-    s.direction === "BUY" ? "sig-badge sig-buy" : s.direction === "SELL" ? "sig-badge sig-sell" : "sig-badge sig-neutral";
-  const icon = s.direction === "BUY" ? "▲" : s.direction === "SELL" ? "▼" : "—";
+    s.direction === "LONG"
+      ? "sig-badge sig-buy"
+      : s.direction === "SHORT"
+        ? "sig-badge sig-sell"
+        : "sig-badge sig-neutral";
+  const icon = s.direction === "LONG" ? "▲" : s.direction === "SHORT" ? "▼" : "—";
   const confColor =
-    s.direction === "BUY" ? "var(--good)" : s.direction === "SELL" ? "var(--critical)" : "var(--ink-muted)";
+    s.direction === "LONG" ? "var(--good)" : s.direction === "SHORT" ? "var(--critical)" : "var(--ink-muted)";
 
   return (
     <article className="card">
       <div className="card-top">
         <span className="pair-name">{s.label}</span>
         <span className="price-line">
-          {fmt(s.price, digits)}{" "}
+          ${fmtPrice(s.price, digits)}{" "}
           <span className={s.changePct >= 0 ? "chg-up" : "chg-down"}>
             {s.changePct >= 0 ? "+" : ""}
             {s.changePct.toFixed(2)}%
@@ -59,24 +64,24 @@ export function SignalCard({ signal, backtest, spark }: Props) {
 
       <Sparkline dates={spark.dates} closes={spark.closes} digits={digits} />
 
-      {s.direction !== "NEUTRAL" && s.stopLoss !== null && s.takeProfit !== null ? (
+      {s.direction !== "WAIT" && s.stopLoss !== null && s.takeProfit !== null ? (
         <>
           <div className="levels">
             <div className="lv">
               <b>Entry</b>
-              <span>{fmt(s.entry, digits)}</span>
+              <span>${fmtPrice(s.entry, digits)}</span>
             </div>
             <div className="lv">
               <b>Stop</b>
-              <span>{fmt(s.stopLoss, digits)}</span>
+              <span>${fmtPrice(s.stopLoss, digits)}</span>
             </div>
             <div className="lv">
               <b>Target</b>
-              <span>{fmt(s.takeProfit, digits)}</span>
+              <span>${fmtPrice(s.takeProfit, digits)}</span>
             </div>
           </div>
           <div className="meta-line">
-            Stop {Math.round(s.stopPips ?? 0)} pips · fixed {s.riskRewardRatio.toFixed(1)}R target · as of {s.asOf}
+            Stop {s.stopPct?.toFixed(1)}% · fixed {s.riskRewardRatio.toFixed(1)}R target · valid for the next 4h · as of {s.asOf}
             {s.dataSource === "demo" ? " · demo data" : ""}
           </div>
         </>
@@ -104,7 +109,7 @@ export function SignalCard({ signal, backtest, spark }: Props) {
         </ul>
       </details>
 
-      <div className="stats-line" title="Walk-forward backtest of these exact rules on the loaded history. Excludes spread/slippage.">
+      <div className="stats-line" title="Walk-forward backtest of these exact rules on the loaded history. Excludes fees, funding and slippage.">
         <span>
           Win rate <b>{backtest.winRate === null ? "n/a" : `${backtest.winRate.toFixed(0)}%`}</b>
         </span>

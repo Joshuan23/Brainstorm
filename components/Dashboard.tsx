@@ -3,18 +3,17 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SignalCard } from "./SignalCard";
-import { UpgradeButton } from "./UpgradeButton";
-import { LicenseForm } from "./LicenseForm";
 import type { BacktestStats } from "@/lib/backtest";
 import type { Signal } from "@/lib/signals";
 
-type PairEntry =
-  | { locked: true; pairId: string; label: string }
-  | { locked: false; signal: Signal; backtest: BacktestStats; spark: { dates: string[]; closes: number[] } };
+interface CoinEntry {
+  signal: Signal;
+  backtest: BacktestStats;
+  spark: { dates: string[]; closes: number[] };
+}
 
 interface Payload {
-  plan: "free" | "pro" | "demo-pro";
-  pairs: PairEntry[];
+  coins: CoinEntry[];
   generatedAt: string;
 }
 
@@ -33,88 +32,51 @@ export function Dashboard() {
     return <div className="banner">Could not load signals. Refresh to try again.</div>;
   }
   if (!data) {
-    return <div className="meta-line" style={{ padding: "40px 0" }}>Scanning 10 pairs…</div>;
+    return <div className="meta-line" style={{ padding: "40px 0" }}>Scanning the market…</div>;
   }
 
-  const isPro = data.plan !== "free";
-  const anyDemo = data.pairs.some((p) => !p.locked && p.signal.dataSource === "demo");
-  const lockedCount = data.pairs.filter((p) => p.locked).length;
+  const anyDemo = data.coins.some((c) => c.signal.dataSource === "demo");
+  const active = data.coins.filter((c) => c.signal.direction !== "WAIT").length;
 
   return (
     <>
       <div className="dash-head">
         <h1>
-          Daily signals
-          <span className={`plan-badge${isPro ? " pro" : ""}`}>
-            {data.plan === "demo-pro" ? "Pro (demo)" : data.plan}
-          </span>
+          Live signals
+          <span className="plan-badge pro">Free · all markets</span>
         </h1>
-        {isPro ? (
-          <button
-            className="btn"
-            onClick={async () => {
-              await fetch("/api/logout", { method: "POST" });
-              window.location.reload();
-            }}
-          >
-            Switch to free view
-          </button>
-        ) : (
-          <UpgradeButton label={`Unlock ${lockedCount} more pairs with Pro`} />
-        )}
+        <Link href="/track-record" className="btn">
+          Track record →
+        </Link>
       </div>
 
-      {!isPro && (
-        <div style={{ marginBottom: 20 }}>
-          <LicenseForm />
-        </div>
-      )}
+      <p className="meta-line" style={{ marginBottom: 20 }}>
+        {active} of {data.coins.length} markets are firing a trade right now · recomputed every load ·
+        signals refresh once per day.
+      </p>
 
       {anyDemo && (
         <div className="banner">
-          <strong>Demo data in use.</strong> The live rates API isn&apos;t reachable from this
-          environment, so charts and stats below are computed on generated sample data — clearly a
+          <strong>Demo data in use.</strong> The live price API isn&apos;t reachable from this
+          environment, so the charts and stats below are computed on generated sample data — clearly a
           demonstration of the engine, not market analysis. Deployed with network access, the app
-          uses ECB daily reference rates automatically.
+          uses live CoinGecko daily prices automatically.
         </div>
       )}
 
       <div className="grid">
-        {data.pairs.map((p) =>
-          p.locked ? (
-            <article className="card locked" key={p.pairId}>
-              <div className="lock-body">
-                <div className="card-top">
-                  <span className="pair-name">{p.label}</span>
-                  <span className="price-line">•••••</span>
-                </div>
-                <div className="sig-row" style={{ marginTop: 12 }}>
-                  <span className="sig-badge sig-neutral">— HIDDEN</span>
-                </div>
-                <div style={{ height: 110 }} />
-              </div>
-              <div className="lock-overlay">
-                <span className="lock-ico" aria-hidden>
-                  🔒
-                </span>
-                <p>
-                  <b>{p.label}</b> signals, levels and backtest stats are on the Pro plan.
-                </p>
-                <UpgradeButton label="Unlock with Pro" />
-              </div>
-            </article>
-          ) : (
-            <SignalCard key={p.signal.pairId} signal={p.signal} backtest={p.backtest} spark={p.spark} />
-          )
-        )}
+        {data.coins.map((c) => (
+          <SignalCard key={c.signal.coinId} signal={c.signal} backtest={c.backtest} spark={c.spark} />
+        ))}
       </div>
 
       <p className="foot-note">
-        Signals are generated once per trading day from daily reference rates and are provided for
-        education and research — they are not financial advice or an inducement to trade. Backtest
-        figures are measured on historical data by walk-forward simulation, exclude spread,
-        slippage and swap, and do not predict future performance. Trading forex on margin carries a
-        high risk of loss. See the full <Link href="/#pricing">risk disclosure</Link>.
+        Signals are generated once per day from daily closing prices and are provided for education
+        and research — they are not financial advice or an inducement to trade. Backtest figures are
+        measured on historical data by walk-forward simulation, exclude exchange fees, funding and
+        slippage, and do not predict future performance. Trading crypto is highly volatile and can
+        result in the total loss of your capital. See the full{" "}
+        <Link href="/#risk">risk disclosure</Link>.
       </p>
     </>
   );
