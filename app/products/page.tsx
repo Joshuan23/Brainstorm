@@ -4,9 +4,9 @@ import { abs } from "@/lib/site";
 import { PRODUCTS } from "@/lib/products-data";
 
 export const metadata: Metadata = {
-  title: "Templates & Tools for Solo Businesses | Instant Download",
+  title: "Pricing Calculator & Business Templates | Instant Download, No Subscription",
   description:
-    "Focused, single-purpose spreadsheet and Notion templates that solve one real problem well. One-time purchase, instant download, no subscription.",
+    "Spreadsheet templates for solo businesses: pricing calculators, trackers, and planners you can download and use in minutes. One-time purchase, instant download, no subscription.",
   alternates: { canonical: abs("/products") },
 };
 
@@ -14,10 +14,11 @@ export default function ProductsIndex() {
   return (
     <main className="wrap">
       <header className="hero">
-        <h1>Templates that solve one problem, well.</h1>
+        <h1>Pricing calculators &amp; templates for solo businesses.</h1>
         <p className="lede">
-          No bloated all-in-one systems. Each tool is focused, instantly usable, and yours for a
-          one-time price — no subscription.
+          Each template solves one real problem — pricing a job, tracking clients, planning a
+          budget — with working formulas you can use the same day. Buy once, download instantly,
+          no subscription and no bloated all-in-one system to learn.
         </p>
       </header>
 

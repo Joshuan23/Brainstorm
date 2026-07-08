@@ -31,6 +31,8 @@ export default function ProductPage({ params }: Params) {
   const p = getProduct(params.slug);
   if (!p) notFound();
 
+  const otherProducts = PRODUCTS.filter((other) => other.slug !== p.slug);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -79,6 +81,20 @@ export default function ProductPage({ params }: Params) {
               </div>
             ))}
           </dl>
+
+          {otherProducts.length > 0 && (
+            <section className="related">
+              <h2>Related templates</h2>
+              <ul>
+                {otherProducts.map((other) => (
+                  <li key={other.slug}>
+                    <Link href={`/products/${other.slug}`}>{other.name}</Link> — {other.tagline}{" "}
+                    <span className="price-sm">{other.price}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </article>
 
         <aside>

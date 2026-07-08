@@ -147,6 +147,78 @@ export const CAUSES: Cause[] = [
     ],
   },
   {
+    slug: "black-mold-removal",
+    name: "Black Mold Removal",
+    trigger: "black mold",
+    intro:
+      "Black mold (often Stachybotrys or similarly dark-colored species) tends to show up on materials that stayed wet for an extended period — behind baseboards, under sinks, or on drywall after a slow leak. Because it's frequently discussed as a health concern, the right first move is caution and containment, not scrubbing.",
+    steps: [
+      "Do not touch, scrub, or dry-brush the mold — disturbing it can release spores into the air you breathe.",
+      "Keep children, pets, and anyone with asthma or a compromised immune system out of the room until it's assessed.",
+      "Close interior doors and, if you have one, run a portable air purifier with a HEPA filter nearby rather than the whole-house HVAC.",
+      "Note where the moisture is coming from (a slow pipe leak, condensation, roof intrusion) — mold identified as black will still return if that source isn't fixed.",
+      "Call a licensed mold remediation professional to test, contain, and remove it rather than attempting DIY removal on a dark or widespread patch.",
+    ],
+    faqs: [
+      {
+        q: "Is all black-colored mold 'toxic black mold'?",
+        a: "Not necessarily — several mold species can appear dark or black, and color alone doesn't identify the species or its risk. If you're concerned about a specific health risk, a lab test by a remediation professional is the only way to know what you're dealing with.",
+      },
+      {
+        q: "Should I try to remove black mold myself?",
+        a: "For a very small, hard-surface spot some homeowners do a limited cleanup themselves. But because dark mold is often flagged as a health concern and disturbing it can spread spores through the air, most remediation professionals recommend professional containment and removal once it's on drywall, wood, or covers more than a small area.",
+      },
+    ],
+  },
+  {
+    slug: "attic-mold-removal",
+    name: "Attic Mold Removal",
+    trigger: "attic mold",
+    intro:
+      "Attic mold is usually driven by one of two things: a roof leak soaking the sheathing, or poor ventilation trapping warm, moist household air against a cold roof deck in winter. You'll often spot it as dark staining or fuzzy growth on the underside of the roof deck or on rafters — and because attics are rarely visited, it can spread for a long time before anyone notices.",
+    steps: [
+      "Check for an active roof leak first — water stains, damp insulation, or daylight through the roof deck point to intrusion that needs to be stopped before any cleanup.",
+      "Look at your attic ventilation — blocked soffit vents, a missing ridge vent, or a bathroom fan venting into the attic instead of outside are common causes of condensation-driven mold.",
+      "Avoid walking through the insulation or brushing against the mold-covered wood — this spreads spores into the rest of the attic and can push them into living spaces through gaps.",
+      "If insulation is wet or moldy, don't just leave it in place assuming it will dry — wet insulation stays damp for a long time and keeps feeding mold growth.",
+      "Get a remediation professional to assess the roof deck, treat or remove affected wood and insulation, and confirm ventilation is fixed so mold doesn't come back.",
+    ],
+    faqs: [
+      {
+        q: "Why does my attic keep growing mold even without a roof leak?",
+        a: "Warm, humid air from bathrooms, kitchens, and even people breathing rises into the attic and condenses on the cold underside of the roof deck in winter, especially if soffit and ridge vents are blocked or insufficient. That condensation cycle can grow mold on rafters and sheathing without any active leak.",
+      },
+      {
+        q: "Does attic mold affect the air quality in the rest of the house?",
+        a: "It can, particularly if there are gaps around attic hatches, recessed lighting, or HVAC returns that pull attic air into living spaces. Sealing those pathways is often part of a proper remediation, along with removing the mold and fixing the moisture source.",
+      },
+    ],
+  },
+  {
+    slug: "crawl-space-mold-removal",
+    name: "Crawl Space Mold Removal",
+    trigger: "crawl space mold",
+    intro:
+      "Crawl spaces trap ground moisture, and without a proper vapor barrier that moisture condenses on floor joists and subfloor above, feeding mold growth that can sit undetected for months. A musty smell in the rooms above is often the first sign something is wrong underneath the house.",
+    steps: [
+      "Check for standing water or consistently damp soil in the crawl space — a sump pump failure, poor grading, or a plumbing leak underneath the house are common sources.",
+      "Look for a vapor barrier on the ground — an exposed dirt floor lets soil moisture evaporate upward continuously, which is one of the most common causes of crawl space mold.",
+      "Avoid spending extended time in the crawl space without a mask if mold is visible, and don't disturb moldy insulation or subfloor material, which releases spores into the crawl space air.",
+      "Check whether crawl space vents are open or closed for the season — in humid climates, uncontrolled venting can pull in more moisture than it removes.",
+      "Call a professional to assess moisture levels, remove and treat affected wood or insulation, and recommend a vapor barrier or encapsulation so the mold doesn't return.",
+    ],
+    faqs: [
+      {
+        q: "How do I know if I have mold in my crawl space if I can't easily see it?",
+        a: "A persistent musty odor in the floors above, unexplained allergy or respiratory symptoms at home, or visible condensation on crawl space pipes and ductwork are common indirect signs. A flashlight inspection of the joists and subfloor, or a professional assessment, can confirm it.",
+      },
+      {
+        q: "Will a vapor barrier alone fix crawl space mold?",
+        a: "A vapor barrier addresses ground moisture, which is a major cause, but it doesn't remove mold that has already grown or fix other sources like plumbing leaks or poor drainage. Existing mold on wood or insulation generally still needs to be remediated even after a vapor barrier is installed.",
+      },
+    ],
+  },
+  {
     slug: "fire-smoke-damage-restoration",
     name: "Fire & Smoke Damage Restoration",
     trigger: "fire and smoke damage",
