@@ -5,20 +5,23 @@ Every entry needs: target query, who currently ranks (weak/strong), evidence of
 willingness-to-pay, the specific wedge, and a verdict.
 
 ## Venture A — Lead-gen wedges
-_(none validated yet — niche-scout's first job)_
+1. **[VALIDATED · TOP] Water damage / restoration — hyperlocal + cause-specific.**
+   Leads $400–$900+ each (avg ~$542); pay-per-call converts 5–7×. Head terms owned by big
+   players → target small-city + cause long-tail ("burst pipe cleanup [small city]",
+   "basement flood restoration [small city]", "sewage backup cleanup"). Template:
+   `app/restoration/[cause]/[city]`. Needs: lead buyer/partner + TCPA consent (owner).
+   Evidence: `2026-07-08-leadgen-restoration.md`.
 
-Seed directions to validate (NOT yet confirmed):
-- High-ticket home services (solar, roofing, HVAC, windows) — providers routinely buy leads.
-- Local trades with per-city page templates and clear commercial intent.
-- B2B installs / commercial services with high lead value and thin existing pages.
+Backlog to validate next: junk removal, tree service (lower value, lower competition).
 
 ## Venture B — Digital-product wedges
-_(none validated yet — niche-scout's first job)_
+1. **[VALIDATED · TOP] Focused "Pricing & Profit Calculator + Client Tracker"** (Sheets +
+   Notion), one solopreneur niche at a time, $19–29 via Lemon Squeezy. Category proven
+   (finance + productivity + lightweight CRM = ~⅔ of sales); focused > all-in-one. Avoid
+   generic budgeting (free-saturated). Clone per niche = new page + listing.
+   Evidence: `2026-07-08-products-templates.md`.
 
-Seed directions to validate (NOT yet confirmed):
-- Spreadsheet tools/templates for a specific profession's recurring task.
-- Planners/checklists/kits with proven paid demand (paid incumbents exist, not just free).
-- A "generator → paid download" tool where correctness matters (regulated/spec output).
+Backlog to validate next: content calendar for a niche, single-purpose second-brain variant.
 
 ## Rejected (red oceans — do not build)
 - Bank/brokerage/crypto **statement → CSV converters**: 15+ players, many free,
