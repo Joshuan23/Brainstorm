@@ -1,0 +1,3 @@
+Bookkeeper Pricing & Package Calculator
+"See SETUP.md in this folder for full setup instructions, the formula key, and the license terms."
+"Short version: yellow cells are inputs, blue cells are formulas. Import each CSV in this folder as its own Sheets tab, then paste in the formulas from SETUP.md if they didn't come through as live formulas."

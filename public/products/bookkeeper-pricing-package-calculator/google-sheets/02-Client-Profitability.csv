@@ -1,0 +1,13 @@
+Client,Package Tier,Monthly Fee ($),Actual Monthly Hours,Effective Hourly Rate ($),Target Hourly Rate ($),On Target?,Notes / Action
+Larkspur Landscaping LLC,Starter,285.71,3.5,"=IF(D2=0,0,C2/D2)",95.24,"=IF(D2=0,"""",IF(E2>=F2,""On target"",""Review""))",Taking longer than planned — review scope or move to Growth
+Nguyen Family Dental,Growth,602.94,5.5,"=IF(D3=0,0,C3/D3)",100.49,"=IF(D3=0,"""",IF(E3>=F3,""On target"",""Review""))",Running efficient — good renewal candidate
+Cedar & Stone Woodworks,Pro,1128.21,11,"=IF(D4=0,0,C4/D4)",112.82,"=IF(D4=0,"""",IF(E4>=F4,""On target"",""Review""))",Slightly under target — confirm payroll add-on is billed separately
+,,0,0,"=IF(D5=0,0,C5/D5)",0,"=IF(D5=0,"""",IF(E5>=F5,""On target"",""Review""))",
+,,0,0,"=IF(D6=0,0,C6/D6)",0,"=IF(D6=0,"""",IF(E6>=F6,""On target"",""Review""))",
+,,0,0,"=IF(D7=0,0,C7/D7)",0,"=IF(D7=0,"""",IF(E7>=F7,""On target"",""Review""))",
+,,0,0,"=IF(D8=0,0,C8/D8)",0,"=IF(D8=0,"""",IF(E8>=F8,""On target"",""Review""))",
+,,0,0,"=IF(D9=0,0,C9/D9)",0,"=IF(D9=0,"""",IF(E9>=F9,""On target"",""Review""))",
+,,0,0,"=IF(D10=0,0,C10/D10)",0,"=IF(D10=0,"""",IF(E10>=F10,""On target"",""Review""))",
+,,0,0,"=IF(D11=0,0,C11/D11)",0,"=IF(D11=0,"""",IF(E11>=F11,""On target"",""Review""))",
+,,0,0,"=IF(D12=0,0,C12/D12)",0,"=IF(D12=0,"""",IF(E12>=F12,""On target"",""Review""))",
+,TOTAL MONTHLY FEES,=SUM(C2:C12),=SUM(D2:D12),,,,
