@@ -19,7 +19,7 @@ export interface BacktestStats {
  * 1.5R target (2.25×ATR). Subsequent closes resolve the trade: stop touched
  * first = -1R, target touched first = +1.5R; if both bracket in one day the
  * conservative assumption (loss) is taken. These are *measured* numbers on
- * daily reference rates — shown to users as exactly that, with the method.
+ * daily closing prices — shown to users as exactly that, with the method.
  */
 export function backtest(closes: number[], warmup = 60): BacktestStats {
   let wins = 0;
@@ -51,8 +51,8 @@ export function backtest(closes: number[], warmup = 60): BacktestStats {
     }
 
     const state = evaluate(closes, t);
-    if (state.direction === "NEUTRAL" || state.atr <= 0) continue;
-    dir = state.direction === "BUY" ? 1 : -1;
+    if (state.direction === "WAIT" || state.atr <= 0) continue;
+    dir = state.direction === "LONG" ? 1 : -1;
     stop = price - dir * STOP_ATR_MULT * state.atr;
     target = price + dir * TARGET_ATR_MULT * state.atr;
     inTrade = true;

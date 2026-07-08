@@ -1,8 +1,8 @@
 {
-  "name": "pipsignal",
+  "name": "budsignal",
   "version": "0.1.0",
   "private": true,
-  "description": "PipSignal — multi-indicator forex signal dashboard with transparent backtested stats and a Stripe paywall",
+  "description": "BudSignal — free Bitcoin & crypto signals from a transparent multi-indicator confluence engine with live walk-forward backtested stats",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

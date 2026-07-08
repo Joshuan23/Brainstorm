@@ -1,13 +1,13 @@
 /**
  * Sanity harness for the signal engine — run with `npm run engine:check`.
  * Verifies indicator math on known inputs and runs the full pipeline
- * (signal + backtest) over demo data for every pair.
+ * (signal + backtest) over demo data for every coin.
  */
 import { ema, rsi, macd, bollinger, closeAtr, sma } from "../lib/indicators";
 import { evaluate, buildSignal } from "../lib/signals";
 import { backtest } from "../lib/backtest";
 import { demoSeries } from "../lib/data";
-import { PAIRS } from "../lib/pairs";
+import { COINS } from "../lib/coins";
 
 let failures = 0;
 function check(name: string, ok: boolean, detail = "") {
@@ -21,7 +21,6 @@ const s3 = sma(seq, 3);
 check("SMA(3) of 1..10 ends at 9", Math.abs(s3[9] - 9) < 1e-9, `got ${s3[9]}`);
 
 const e3 = ema(seq, 3);
-// EMA(3) seeded with SMA of first 3 (=2), k=0.5: 2,3,4,...  → last = 9.5? compute: after seed 2 @i2: i3:3, i4:4 ... i9:9. Actually v*0.5+prev*0.5 → 2,3,4,5,6,7,8,9
 check("EMA(3) of 1..10 ends near 9", Math.abs(e3[9] - 9) < 0.2, `got ${e3[9]}`);
 
 const up = Array.from({ length: 30 }, (_, i) => 100 + i); // strictly rising
@@ -43,35 +42,35 @@ const atr = closeAtr(up, 14);
 check("closeATR of unit-step series = 1", Math.abs(atr[29] - 1) < 1e-6, `got ${atr[29]}`);
 
 // --- engine direction sanity: strong trend should not fight the trend ---
-const bull = Array.from({ length: 120 }, (_, i) => 1.1 * (1 + 0.001 * i));
+const bull = Array.from({ length: 120 }, (_, i) => 100 * (1 + 0.001 * i));
 const bullState = evaluate(bull, bull.length - 1);
-check("Sustained uptrend does not produce SELL", bullState.direction !== "SELL", `score ${bullState.score}`);
+check("Sustained uptrend does not produce SHORT", bullState.direction !== "SHORT", `score ${bullState.score}`);
 
-const bear = Array.from({ length: 120 }, (_, i) => 1.1 * (1 - 0.001 * i));
+const bear = Array.from({ length: 120 }, (_, i) => 100 * (1 - 0.001 * i));
 const bearState = evaluate(bear, bear.length - 1);
-check("Sustained downtrend does not produce BUY", bearState.direction !== "BUY", `score ${bearState.score}`);
+check("Sustained downtrend does not produce LONG", bearState.direction !== "LONG", `score ${bearState.score}`);
 
-// --- full pipeline over demo data for every pair ---
-console.log("\npair     dir      score  entry      stop       target     | trades win%  PF     netR");
-for (const pair of PAIRS) {
-  const series = demoSeries(pair);
-  const sig = buildSignal(pair, series.dates, series.closes, series.source);
+// --- full pipeline over demo data for every coin ---
+console.log("\ncoin   dir     score  entry        stop         target       | trades win%  PF     netR");
+for (const coin of COINS) {
+  const series = demoSeries(coin);
+  const sig = buildSignal(coin, series.dates, series.closes, series.source);
   const bt = backtest(series.closes);
 
   const consistent =
-    sig.direction === "NEUTRAL"
+    sig.direction === "WAIT"
       ? sig.stopLoss === null
-      : sig.direction === "BUY"
+      : sig.direction === "LONG"
         ? sig.stopLoss! < sig.entry && sig.takeProfit! > sig.entry
         : sig.stopLoss! > sig.entry && sig.takeProfit! < sig.entry;
   if (!consistent) {
     failures++;
-    console.log(`FAIL  ${pair.id}: stop/target on wrong side of entry`);
+    console.log(`FAIL  ${coin.id}: stop/target on wrong side of entry`);
   }
   const wr = bt.winRate === null ? "  n/a" : `${bt.winRate.toFixed(0).padStart(4)}%`;
   const pf = bt.profitFactor === null ? "n/a " : bt.profitFactor === Infinity ? "inf " : bt.profitFactor.toFixed(2);
   console.log(
-    `${pair.id}  ${sig.direction.padEnd(7)} ${String(sig.score).padStart(5)}  ${sig.entry.toFixed(pair.digits).padEnd(10)} ${(sig.stopLoss?.toFixed(pair.digits) ?? "—").padEnd(10)} ${(sig.takeProfit?.toFixed(pair.digits) ?? "—").padEnd(10)} | ${String(bt.trades).padStart(6)} ${wr}  ${pf}  ${bt.netR >= 0 ? "+" : ""}${bt.netR.toFixed(1)}R`
+    `${coin.id.padEnd(5)}  ${sig.direction.padEnd(6)} ${String(sig.score).padStart(5)}  ${sig.entry.toFixed(coin.digits).padEnd(11)} ${(sig.stopLoss?.toFixed(coin.digits) ?? "—").padEnd(11)} ${(sig.takeProfit?.toFixed(coin.digits) ?? "—").padEnd(11)} | ${String(bt.trades).padStart(6)} ${wr}  ${pf}  ${bt.netR >= 0 ? "+" : ""}${bt.netR.toFixed(1)}R`
   );
 }
 
