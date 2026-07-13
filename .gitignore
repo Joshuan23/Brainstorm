@@ -6,3 +6,9 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+
+# Business Builder runtime state & generated artifacts
+builder/state/*
+!builder/state/.gitkeep
+builder/workspace/*
+!builder/workspace/.gitkeep
